@@ -49,7 +49,7 @@ function fu.updateSpellSuccess(spellID)
             fu.blocks.auras.entropicRift.expirationTime = fu.blocks.auras.entropicRift.expirationTime + 1
             fu.blocks.auras.entropicRift.castCount = fu.blocks.auras.entropicRift.castCount + 1
         end
-    elseif spellID == 472433 then -- 福音
+    elseif spellID == 472433 then -- 获取: 福音
         fu.blocks.auras.evangelism.expirationTime = GetTime() + fu.blocks.auras.evangelism.duration
         fu.blocks.auras.evangelism.applications = 2
     elseif spellID == 194509 and fu.blocks.auras.evangelism.expirationTime then -- 真言术：耀
@@ -57,7 +57,7 @@ function fu.updateSpellSuccess(spellID)
     elseif spellID == 596 and fu.blocks.auras.lightweaver.expirationTime then
         fu.blocks.auras.lightweaver.applications = math.max(0, fu.blocks.auras.lightweaver.applications - 1)
         creat(fu.blocks.auras.lightweaver.index2, fu.blocks.auras.lightweaver.applications / 255)
-    elseif spellID == 232633 and fu.blocks.auras.evangelism.expirationTime then
+    elseif spellID == 232633 and fu.blocks.auras.evangelism.expirationTime then -- 消耗: 福音
         fu.blocks.auras.evangelism.applications = math.max(0, fu.blocks.auras.evangelism.applications - 1)
         creat(fu.blocks.auras.evangelism.index2, fu.blocks.auras.evangelism.applications / 255)
     end
@@ -66,11 +66,11 @@ end
 -- 更新法术冷却更新
 function fu.updateSpellCooldownByEvent(spellId)
     if not fu.blocks or not fu.blocks.auras then return end
-    if spellId == 390993 and fu.blocks.auras.lightweaver then
+    if spellId == 390993 and fu.blocks.auras.lightweaver then -- 获取: 织光者
         fu.blocks.auras.lightweaver.expirationTime = GetTime() + fu.blocks.auras.lightweaver.duration
         fu.blocks.auras.lightweaver.applications = math.min(4, fu.blocks.auras.lightweaver.applications + 1)
         creat(fu.blocks.auras.lightweaver.index2, fu.blocks.auras.lightweaver.applications / 255)
-    elseif spellId == 1262766 and fu.blocks.auras.benediction then
+    elseif spellId == 1262766 and fu.blocks.auras.benediction then -- 获取: 祈福
         fu.blocks.auras.benediction.expirationTime = GetTime() + fu.blocks.auras.benediction.duration
     end
 end
@@ -303,15 +303,16 @@ function fu.updateSpecInfo()
             encounterID = 15,
             difficultyID = 16,
             spell_cd = {
-                [8092] = { index = 14, spellId = 8092, name = "心灵震爆" },
-                [32379] = { index = 15, spellId = 32379, name = "暗言术：灭" },
-                [263165] = { index = 16, spellId = 263165, name = "虚空洪流" },
-                [228260] = { index = 17, spellId = 228260, name = "虚空形态", failed = true },
-                [1227280] = { index = 18, spellId = 1227280, name = "触须猛击" },
-                [19236] = { index = 19, spellId = 19236, name = "绝望祷言" },
-                [8122] = { index = 20, spellId = 8122, name = "心灵尖啸", failed = true },
-                [32375] = { index = 21, spellId = 32375, name = "群体驱散", failed = true },
-                [15286] = { index = 22, spellId = 15286, name = "吸血鬼的拥抱", failed = true },
+                [8092] = { index = 31, name = "心灵震爆" },
+                [32379] = { index = 32, name = "暗言术：灭" },
+                [263165] = { index = 33, name = "虚空洪流" },
+                [228260] = { index = 34, name = "虚空形态", failed = true },
+                [1227280] = { index = 35, name = "触须猛击" },
+                [19236] = { index = 36, name = "绝望祷言" },
+                [8122] = { index = 37, name = "心灵尖啸", failed = true },
+                [32375] = { index = 38, name = "群体驱散", failed = true },
+                [15286] = { index = 39, name = "吸血鬼的拥抱", failed = true },
+                [120644] = { index = 40, name = "光晕" },
             },
         }
         fu.assistant_spells = {
@@ -328,6 +329,8 @@ function fu.updateSpecInfo()
             [1227280] = 11, -- 触须猛击
             [450983] = 12,  -- 虚空冲击
             [1242173] = 13, -- 虚空齐射
+            [391403] = 14,  -- 精神鞭笞：狂
+            [120644] = 15,  -- 光晕
         }
     end
 end
