@@ -70,8 +70,6 @@ function fu.updateSpellCooldownByEvent(spellId)
         fu.blocks.auras.lightweaver.expirationTime = GetTime() + fu.blocks.auras.lightweaver.duration
         fu.blocks.auras.lightweaver.applications = math.min(4, fu.blocks.auras.lightweaver.applications + 1)
         creat(fu.blocks.auras.lightweaver.index2, fu.blocks.auras.lightweaver.applications / 255)
-    elseif spellId == 1262766 and fu.blocks.auras.benediction then -- 获取: 祈福
-        fu.blocks.auras.benediction.expirationTime = GetTime() + fu.blocks.auras.benediction.duration
     end
 end
 
@@ -95,11 +93,20 @@ function fu.updateSpellIcon(spellId)
         elseif overrideSpellID == 585 then
             fu.blocks.auras.entropicRift.expirationTime = nil
         end
-    elseif spellId == 2061 and fu.blocks.auras.shadowMend then
-        if overrideSpellID == 186263 then
-            fu.blocks.auras.shadowMend.expirationTime = GetTime() + fu.blocks.auras.shadowMend.duration
-        elseif overrideSpellID == 2061 then
-            fu.blocks.auras.shadowMend.expirationTime = nil
+    elseif spellId == 2061 then
+        if fu.blocks.auras.shadowMend then
+            if overrideSpellID == 186263 then
+                fu.blocks.auras.shadowMend.expirationTime = GetTime() + fu.blocks.auras.shadowMend.duration
+            elseif overrideSpellID == 2061 then
+                fu.blocks.auras.shadowMend.expirationTime = nil
+            end
+        end
+        if fu.blocks.auras.benediction then -- 获取: 祈福
+            if overrideSpellID == 1262763 then
+                fu.blocks.auras.benediction.expirationTime = GetTime() + fu.blocks.auras.benediction.duration
+            elseif overrideSpellID == 2061 then
+                fu.blocks.auras.benediction.expirationTime = nil
+            end
         end
     end
 end
@@ -256,7 +263,7 @@ function fu.updateSpecInfo()
                     name = "祈福",
                     index = 22,
                     remaining = 0,
-                    duration = 30,
+                    duration = 52,
                     expirationTime = nil,
                 },
             },
