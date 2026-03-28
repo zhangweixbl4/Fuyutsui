@@ -140,6 +140,43 @@ function fu.spellActivationOverlayHide(spellID)
     end
 end
 
+function fu.updateHeroTalent()
+    if fu.blocks.hero_talent then
+        local hero_talent = 0
+        if C_SpellBook.IsSpellKnown(1248423) then
+            hero_talent = 1
+        elseif C_SpellBook.IsSpellKnown(447444) then
+            hero_talent = 2
+        elseif C_SpellBook.IsSpellKnown(120517) then
+            hero_talent = 3
+        end
+        creat(fu.blocks.hero_talent, hero_talent / 255)
+    end
+end
+
+function fu.updateOnUpdate()
+    if not fu.blocks or not fu.blocks.auras then return end
+    for _, aura in pairs(fu.blocks.auras) do
+        if aura.expirationTime then
+            aura.remaining = math.floor(aura.expirationTime - GetTime() + 0.5)
+            if aura.remaining > 0 then
+                creat(aura.index, aura.remaining / 255)
+            else
+                aura.expirationTime = nil
+                creat(aura.index, 0)
+            end
+        else
+            aura.remaining = 0
+            if aura.applications then aura.applications = 0 end
+            if aura.index2 then creat(aura.index2, 0) end
+            creat(aura.index, 0)
+        end
+        if aura.applications and aura.applications <= 0 then
+            aura.expirationTime = nil
+            creat(aura.index, 0)
+        end
+    end
+end
 function fu.updateSpecInfo()
     local specIndex = C_SpecializationInfo.GetSpecialization()
     fu.powerType = nil
@@ -343,42 +380,6 @@ function fu.updateSpecInfo()
     end
 end
 
-function fu.updateHeroTalent()
-    if fu.blocks.hero_talent then
-        local hero_talent = 0
-        if C_SpellBook.IsSpellKnown(1248423) then
-            hero_talent = 1
-        elseif C_SpellBook.IsSpellKnown(447444) then
-            hero_talent = 2
-        elseif C_SpellBook.IsSpellKnown(120517) then
-            hero_talent = 3
-        end
-        creat(fu.blocks.hero_talent, hero_talent / 255)
-    end
-end
 
-function fu.updateOnUpdate()
-    if not fu.blocks or not fu.blocks.auras then return end
-    for _, aura in pairs(fu.blocks.auras) do
-        if aura.expirationTime then
-            aura.remaining = math.floor(aura.expirationTime - GetTime() + 0.5)
-            if aura.remaining > 0 then
-                creat(aura.index, aura.remaining / 255)
-            else
-                aura.expirationTime = nil
-                creat(aura.index, 0)
-            end
-        else
-            aura.remaining = 0
-            if aura.applications then aura.applications = 0 end
-            if aura.index2 then creat(aura.index2, 0) end
-            creat(aura.index, 0)
-        end
-        if aura.applications and aura.applications <= 0 then
-            aura.expirationTime = nil
-            creat(aura.index, 0)
-        end
-    end
-end
 
 fu.updateSpecInfo()

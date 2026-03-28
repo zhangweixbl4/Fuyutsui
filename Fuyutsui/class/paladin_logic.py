@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """圣骑士职业的逻辑决策（神圣）。"""
 
-from utils import get_hotkey, get_unit_with_dispel_type, get_lowest_health_unit, get_lowest_health_unit_without_aura, count_units_below_health
-
+from utils import *
 
 def run_paladin_logic(state_dict, spec_name):
     spells = state_dict.get("spells") or {}

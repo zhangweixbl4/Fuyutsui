@@ -29,6 +29,7 @@ state:
   能量值:
     step: 10
     type: "int"
+
 2:
   keymap: "paladin.yml"
   1:
@@ -385,6 +386,9 @@ state:
     祈福:
       step: 22
       type: "int"
+    施法技能:
+      step: 36
+      type: "int"
     spells:
       愈合祷言:
         step: 23
@@ -490,6 +494,9 @@ state:
       吸血鬼的拥抱:
         step: 39
         type: "int"
+      光晕:
+        step: 40
+        type: "int"
       
 6:
   keymap: "deathknight.yml"
@@ -571,6 +578,89 @@ state:
         type: "int"
       腐化2:
         step: 21
+        type: "int"
+
+8:
+  keymap: "mage.yml"
+  3:
+    一键辅助:
+      step: 11
+      type: "int"
+    目标有效:
+      step: 12
+      type: "bool"
+    法术失败:
+      step: 13
+      type: "int"
+    英雄天赋:
+      step: 14
+      type: "int"
+    首领战:
+      step: 15
+      type: "int"
+    难度:
+      step: 16
+      type: "int"
+    敌人人数:
+      step: 24
+      type: "int"
+    施法技能:
+      step: 17
+      type: "int"
+    真能真空:
+      step: 18
+      type: "int"
+    冰川尖刺:
+      step: 19
+      type: "int"
+    冰冷智慧:
+      step: 20
+      type: "int"
+    冰冻之雨:
+      step: 21
+      type: "int"
+    寒冰指:
+      step: 22
+      type: "int"
+    寒冰指层数:
+      step: 23
+      type: "int"
+    spells:
+      解除诅咒:
+        step: 31
+        type: "int"
+      强化隐形术:
+        step: 32
+        type: "int"
+      冰霜新星:
+        step: 33
+        type: "int"
+      法术反制:
+        step: 34
+        type: "int"
+      龙息术:
+        step: 35
+        type: "int"
+      暴风雪T:
+        step: 36
+        type: "int"
+      暴风雪C:
+        step: 37
+        type: "int"
+      寒冰宝珠:
+        step: 38
+        type: "int"
+      冰霜射线:
+        step: 39
+        type: "int"
+      寒冰护体:
+        step: 40
+        type: "int"
+      冰风暴:
+        step: 41
+        type: "int"
+      冰风暴充能:
+        step: 42
         type: "int"
 
 9:
@@ -658,6 +748,7 @@ state:
       法术封锁:
         step: 47
         type: "int"
+
 11:
   keymap: "druid.yml"
   3:

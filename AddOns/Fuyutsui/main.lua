@@ -146,11 +146,10 @@ local function updatePlayerChannelingInfo()
     end
 end
 
-local function updatePlayerCasting()
-    local name, _, _, startTimeMs, endTimeMs, _, _, _, castingSpellID = UnitCastingInfo("player")
+local function updatePlayerCasting(spellId)
     if blocks and blocks.castingSpell then
-        if castingSpellID and fu.castingSpellList[castingSpellID] then
-            creat(blocks.castingSpell, fu.castingSpellList[castingSpellID] / 255)
+        if fu.castingSpellList[spellId] then
+            creat(blocks.castingSpell, fu.castingSpellList[spellId] / 255)
         else
             creat(blocks.castingSpell, 0)
         end
@@ -699,26 +698,28 @@ end
 
 -- 施法状态
 frame:RegisterUnitEvent("UNIT_SPELLCAST_START", "player")
-function frame:UNIT_SPELLCAST_START(unit, spellId)
+function frame:UNIT_SPELLCAST_START(unitTarget, castGUID, spellID, castBarID)
     state.casting = true
-    updatePlayerCasting()
+    updatePlayerCasting(spellID)
 end
 
 frame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "player")
-function frame:UNIT_SPELLCAST_STOP(unit, spellId)
+function frame:UNIT_SPELLCAST_STOP(unitTarget, castGUID, spellID, castBarID)
     state.casting = false
-    updatePlayerCasting()
+    updatePlayerCasting(0)
 end
 
 -- 引导状态
 frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player")
-function frame:UNIT_SPELLCAST_CHANNEL_START(unit, spellId)
+function frame:UNIT_SPELLCAST_CHANNEL_START(unitTarget, castGUID, spellID, castBarID)
     state.channeling = true
+    updatePlayerCasting(spellID)
 end
 
 frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "player")
-function frame:UNIT_SPELLCAST_CHANNEL_STOP(unit, spellId)
+function frame:UNIT_SPELLCAST_CHANNEL_STOP(unitTarget, castGUID, spellID, castBarID)
     state.channeling = false
+    updatePlayerCasting(0)
 end
 
 frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
@@ -859,6 +860,7 @@ end
 
 frame:RegisterEvent("SPELL_UPDATE_COOLDOWN") -- 法术冷却更新
 function frame:SPELL_UPDATE_COOLDOWN(spellId)
+    -- print(spellId, C_Spell.GetSpellName(spellId))
     if type(updateSpellCooldownByEvent) == "function" then
         updateSpellCooldownByEvent(spellId)
     end

@@ -30,5 +30,6 @@ class/Priest.lua
 class/DeathKnight.lua
 class/Paladin.lua
 class/Warlock.lua
+class/Mage.lua
 keybinds.lua
 main.lua

@@ -36,7 +36,7 @@ run_evoker_logic = _load_logic_module("evoker_logic")
 
 TOGGLE_INTERVAL = 0.05
 LOGIC_INTERVAL = 0.2
-GUI_UPDATE_MS = 150
+GUI_UPDATE_MS = 100
 
 LOGIC_FUNCS_BY_CLASS = {
     1: run_warrior_logic,
