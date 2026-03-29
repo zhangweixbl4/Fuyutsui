@@ -51,7 +51,7 @@ def run_mage_logic(state_dict, spec_name):
         暴风雪Ccd = spells.get("暴风雪C", -1)
         # 施放冰川尖刺时, 冰川尖刺层数清零,防止重复施法
         if 施法技能 == 2: 
-           冰川尖刺 = 0
+           冰川尖刺 = 1
 
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
@@ -66,7 +66,7 @@ def run_mage_logic(state_dict, spec_name):
             elif 寒冰指层数 == 2:
                 current_step = "施放 冰枪术"
                 action_hotkey = get_hotkey(0, "冰枪术")
-            elif 冰川尖刺 == 1:
+            elif 冰川尖刺 == 2:
                 current_step = "施放 寒冰箭"
                 action_hotkey = get_hotkey(0, "寒冰箭")
             else:

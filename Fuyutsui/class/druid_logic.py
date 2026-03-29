@@ -23,19 +23,18 @@ def run_druid_logic(state_dict, spec_name):
         狂暴充能 = spells.get("狂暴充能")
         狂暴回复 = spells.get("狂暴回复")
         铁鬃 = state_dict.get("铁鬃")
-        节能施法 = state_dict.get("节能施法")
-        熊形态 = state_dict.get("姿态")
+        梦境层数 = state_dict.get("梦境层数")
+        姿态 = state_dict.get("姿态")
         目标距离 = state_dict.get("目标距离")
         队伍人数 = state_dict.get("队伍人数")
         连击点 = state_dict.get("连击点")
-
 
         if channeling > 0:
             current_step = "在引导,不执行任何操作"
             return None, current_step, unit_info
 
         if combat and 目标有效:
-            if state_dict.get("姿态") != 5:
+            if 姿态 != 5:
                 current_step = "施放 熊形态"
                 action_hotkey = get_hotkey(0, "熊形态")
             elif 生命值 < 85 and 能量值 > 10 and 狂暴充能 < 3 and 狂暴回复 == 0:
@@ -47,7 +46,7 @@ def run_druid_logic(state_dict, spec_name):
             elif ((铁鬃 < 2 and 能量值 > 40) or 能量值 > 80):
                 current_step = "施放 铁鬃"
                 action_hotkey = get_hotkey(0, "铁鬃")
-            elif 节能施法 > 0 and 狂暴回复 > 15:
+            elif 梦境层数 > 0 and 狂暴回复 > 15:
                 current_step = "施放 愈合"
                 action_hotkey = get_hotkey(1, "愈合")
             else:
@@ -60,6 +59,8 @@ def run_druid_logic(state_dict, spec_name):
                     6: ("痛击", "痛击"),
                     7: ("裂伤", "裂伤"),
                     8: ("野性印记", "野性印记"),
+                    9: ("赤红之月", "月火术"),
+                    10: ("毁灭", "摧折"),
                 }
                 tup = action_map.get(一键)
                 if tup:
@@ -167,7 +168,7 @@ def run_druid_logic(state_dict, spec_name):
             if 一键 == 4:
                 current_step = "施放 斜掠"
                 action_hotkey = get_hotkey(0, "斜掠")
-            elif state_dict.get("目标距离") <= 8:
+            elif state_dict.get("目标距离") <= 4:
                 if state_dict.get("姿态") != 1:
                     current_step = "施放 猎豹形态"
                     action_hotkey = get_hotkey(0, "猎豹形态")

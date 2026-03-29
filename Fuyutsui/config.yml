@@ -135,7 +135,7 @@ state:
       step: 14
       type: "int"
     军备类型:
-      step: 15
+      step: 40
       type: "int"
     神圣意志:
       step: 16
@@ -516,18 +516,21 @@ state:
     敌人人数:
       step: 15
       type: "int"
+    英雄天赋:
+      step: 16
+      type: "int"
     spells:
       亡者复生:
-        step: 16
-        type: "int"
-      吸血鬼之血:
         step: 17
         type: "int"
-      冰封之韧:
+      吸血鬼之血:
         step: 18
         type: "int"
-      巫妖之躯:
+      冰封之韧:
         step: 19
+        type: "int"
+      巫妖之躯:
+        step: 20
         type: "int"
   3:
     符文:
@@ -545,39 +548,48 @@ state:
     敌人人数:
       step: 15
       type: "int"
+    英雄天赋:
+      step: 16
+      type: "int"
     脓疮毒镰:
-      step: 22
+      step: 21
       type: "int"
     次级食尸鬼:
+      step: 22
+      type: "int"
+    食尸鬼层数:
       step: 23
       type: "int"
     末日突降:
       step: 24
       type: "int"
-    黑暗援助:
+    末日突降层数:
       step: 25
       type: "int"
-    禁断知识:
+    黑暗援助:
       step: 26
+      type: "int"
+    禁断知识:
+      step: 27
       type: "int"
     spells:
       亡者复生:
-        step: 16
+        step: 31
         type: "int"
       亡者大军:
-        step: 17
+        step: 32
         type: "int"
       腐化:
-        step: 18
+        step: 33
         type: "int"
       黑暗突变:
-        step: 19
+        step: 34
         type: "int"
       灵魂收割:
-        step: 20
+        step: 35
         type: "int"
-      腐化2:
-        step: 21
+      腐化充能:
+        step: 36
         type: "int"
 
 8:
@@ -770,14 +782,17 @@ state:
     法术失败:
       step: 16
       type: "int"
-    节能施法:
+    梦境:
       step: 17
       type: "int"
-    铁鬃:
+    梦境层数:
       step: 18
       type: "int"
-    狂暴回复:
+    铁鬃:
       step: 19
+      type: "int"
+    狂暴回复:
+      step: 20
       type: "int"
     spells:
       树皮术:

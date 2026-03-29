@@ -233,11 +233,11 @@ def run_priest_logic(state_dict, spec_name):
         halo_cd = spells.get("光晕", -1)
         apotheosis_cd = spells.get("神圣化身", -1)
 
-        lightweaver = state_dict.get("织光者", 0)
-        lightweaver_count = state_dict.get("织光层数", 0)
-        light_burst = state_dict.get("圣光涌动", 0)
-        benediction = state_dict.get("祈福", 0)
-        casting_spell = state_dict.get("施法技能", 0)
+        织光者 = state_dict.get("织光者", 0)
+        织光层数 = state_dict.get("织光层数", 0)
+        圣光涌动 = state_dict.get("圣光涌动", 0)
+        祈福 = state_dict.get("祈福", 0)
+        施法技能 = state_dict.get("施法技能", 0)
 
         dispel_unit, _ = get_unit_with_dispel_type(state_dict, 1)
         lowest_u, lowest_p = get_lowest_health_unit(state_dict, 100)
@@ -246,10 +246,10 @@ def run_priest_logic(state_dict, spec_name):
         count90 = get_count_units_below_health(state_dict, 90)
         count80 = get_count_units_below_health(state_dict, 80)
 
-        if casting_spell == 11 and lightweaver_count > 0:
-            lightweaver_count = lightweaver_count - 1
-        if casting_spell == 4 or casting_spell == 19:
-            lightweaver_count = lightweaver_count + 1
+        if 施法技能 == 11 and 织光层数 > 0:
+            织光层数 = 织光层数 - 1
+        if 施法技能 == 4 or 施法技能 == 19:
+            织光层数 = 织光层数 + 1
 
         if channeling > 0:
             current_step = "引导,不执行任何操作"
@@ -309,24 +309,24 @@ def run_priest_logic(state_dict, spec_name):
                         current_step = "施放 光晕"
                         action_hotkey = get_hotkey(0, "光晕")
                     # 织光者, 织光层数为0时
-                    elif lightweaver_count == 0 or (benediction > 0 and lowest_p < 80) :
+                    elif 织光层数 == 0 or (祈福 > 0 and lowest_p < 80) :
                         current_step = f"施放 快速治疗 on {lowest_u}, 生命最低的单位"
                         action_hotkey = get_hotkey(int(lowest_u), "快速治疗")
                     # 治疗祷言
-                    elif lightweaver_count > 0 and light_burst > 0 and count90 >= 3:
+                    elif 织光层数 > 0 and 圣光涌动 > 0 and count90 >= 3:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
-                    elif not moving and lightweaver_count == 4 and count90 >= 5:
+                    elif not moving and 织光层数 == 4 and count90 >= 5:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
-                    elif not moving and lightweaver_count > 0 and count80 >= 5:
+                    elif not moving and 织光层数 > 0 and count80 >= 5:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
                     # 快速治疗
-                    elif lightweaver_count < 3 and lowest_p < 80:
+                    elif not (施法技能 == 4 or 施法技能 == 19) and 织光层数 < 3 and lowest_p < 80:
                         current_step = f"施放 快速治疗 on {lowest_u}, 生命最低的单位"
                         action_hotkey = get_hotkey(int(lowest_u), "快速治疗")
-                    elif lowest_p < 70:
+                    elif not (施法技能 == 4 or 施法技能 == 19) and lowest_p < 70:
                         current_step = f"施放 快速治疗 on {lowest_u}, 生命最低的单位"
                         action_hotkey = get_hotkey(int(lowest_u), "快速治疗")
                     elif target_valid and combat:
@@ -369,22 +369,22 @@ def run_priest_logic(state_dict, spec_name):
                         current_step = "施放 光晕"
                         action_hotkey = get_hotkey(0, "光晕")
                     # 治疗祷言
-                    elif lightweaver_count > 0 and (light_burst > 0 or lightweaver_count == 4) and count90 >= 2:
+                    elif 织光层数 > 0 and (圣光涌动 > 0 or 织光层数 == 4) and count90 >= 2:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
                     # 祈福
-                    elif benediction > 0:
+                    elif 祈福 > 0:
                         current_step = f"祈福 施放 快速治疗 on {lowest_u}, 生命最低的单位"
                         action_hotkey = get_hotkey(int(lowest_u), "快速治疗")
                     # 织光者, 织光层数为0时
-                    elif lightweaver_count == 0:
+                    elif 织光层数 == 0:
                         current_step = f"施放 快速治疗 on {lowest_u}, 生命最低的单位"
                         action_hotkey = get_hotkey(int(lowest_u), "快速治疗")
                     # 治疗祷言
-                    elif lightweaver_count > 0 and (light_burst > 0 or lightweaver_count == 4) and count90 >= 2:
+                    elif 织光层数 > 0 and (圣光涌动 > 0 or 织光层数 == 4) and count90 >= 2:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
-                    elif lightweaver_count > 0 and count80 >= 2:
+                    elif 织光层数 > 0 and count80 >= 2:
                         current_step = "施放 治疗祷言"
                         action_hotkey = get_hotkey(0, "治疗祷言")
                     # 快速治疗

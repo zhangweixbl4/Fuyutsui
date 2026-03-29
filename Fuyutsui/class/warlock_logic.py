@@ -35,7 +35,7 @@ def run_warlock_logic(state_dict, spec_name):
         #    current_step = "施放 内爆"
         #    action_hotkey = get_hotkey(0, "内爆")
         elif combat and target_valid:
-            if spells.get("魔典：邪能破坏者") == 0 and state_dict.get("法术封锁", -1) == 0:
+            if spells.get("魔典：邪能破坏者") == 0 and state_dict.get("法术封锁", -1) == 1:
                 current_step = "施放 魔典：邪能破坏者"
                 action_hotkey = get_hotkey(0, "魔典：邪能破坏者")
             elif state_dict.get("小鬼数量", 0) >= 6 and spells.get("内爆") == 0:
