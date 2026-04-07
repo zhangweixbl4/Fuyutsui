@@ -1,0 +1,84 @@
+1:
+  unit: 1
+  技能: 倒刺射击
+  热键: CTRL-NUMPAD1
+2:
+  unit: 2
+  技能: 杀戮命令
+  热键: CTRL-NUMPAD2
+3:
+  unit: 3
+  技能: 眼镜蛇射击
+  热键: CTRL-NUMPAD3
+4:
+  unit: 4
+  技能: 狂野怒火
+  热键: CTRL-NUMPAD4
+5:
+  unit: 5
+  技能: 荒野呼唤
+  热键: CTRL-NUMPAD5
+6:
+  unit: 6
+  技能: 夺命黑鸦
+  热键: CTRL-NUMPAD6
+7:
+  unit: 7
+  技能: 弹幕射击
+  热键: CTRL-NUMPAD7
+8:
+  unit: 8
+  技能: 血溅十方
+  热键: CTRL-NUMPAD8
+9:
+  unit: 9
+  技能: 瞄准射击
+  热键: CTRL-NUMPAD9
+10:
+  unit: 10
+  技能: 急速射击
+  热键: CTRL-NUMPAD0
+11:
+  unit: 11
+  技能: 稳固射击
+  热键: CTRL-NUMPADDECIMAL
+12:
+  unit: 12
+  技能: 多重射击
+  热键: CTRL-NUMPADPLUS
+13:
+  unit: 13
+  技能: 百发百中
+  热键: CTRL-NUMPADMINUS
+14:
+  unit: 14
+  技能: 夺命射击
+  热键: CTRL-NUMPADMULTIPLY
+15:
+  unit: 15
+  技能: 爆炸射击
+  热键: CTRL-NUMPADDIVIDE
+16:
+  unit: 16
+  技能: 哀恸箭
+  热键: CTRL-F1
+17:
+  unit: 17
+  技能: 猎人印记
+  热键: CTRL-F2
+18:
+  unit: 18
+  技能: 奥术射击
+  热键: CTRL-F3
+19:
+  unit: 19
+  技能: 奇美拉射击
+  热键: CTRL-F5
+20:
+  unit: 20
+  技能: 召唤宠物1
+  热键: CTRL-F6
+21:
+  unit: 21
+  技能: 狂野鞭笞
+  热键: CTRL-F7
