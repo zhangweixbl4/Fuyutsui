@@ -7,15 +7,15 @@ local GetOverrideSpell = C_Spell.GetOverrideSpell
 local IsSpellInRange = C_Spell.IsSpellInRange
 local IsSpellKnown = C_SpellBook.IsSpellKnown
 local EvaluateColorFromBoolean = C_CurveUtil.EvaluateColorFromBoolean
-
+local GetBuffDataByIndex = C_UnitAuras.GetBuffDataByIndex
 local rc = LibStub("LibRangeCheck-3.0")
 local creat = fu.updateOrCreatTextureByIndex
 
-local state, group, group_list, target, nameplate = {}, {}, {}, {}, {}
+local state, spells, group, group_list, target, nameplate = {}, {}, {}, {}, {}, {}
 local fixed, group_blocks, blocks = {}, nil, nil
-local failedSpell, failedSpellTimer, updateIndex = nil, nil, 1
+local failedSpell, failedSpellId, failedSpellTimer, updateIndex = nil, nil, nil, 1
 local updateSpecInfo, createClassMacro
-local roleMap, enumPowerType = fu.roleMap, fu.EnumPowerType
+local roleMap, enumPowerType, spellsList = fu.roleMap, fu.EnumPowerType, fu.spellsList
 local fallbackColor = CreateColor(0, 0, 1)
 
 fixed["锚点"] = 1
@@ -40,25 +40,44 @@ fixed["英雄天赋"] = 18
 -- ================================================================
 --                          创建颜色曲线
 -- ================================================================
-local dispelCurve = C_CurveUtil.CreateColorCurve()
-dispelCurve:SetType(Enum.LuaCurveType.Step)
-local curve140 = fu.creatColorCurve(1, 140)
-local curve120 = fu.creatColorCurve(1, 120)
-local curve115 = fu.creatColorCurve(1, 115)
-local curve100 = fu.creatColorCurve(1, 100)
-local curve85 = fu.creatColorCurve(1, 85)
+local curveCache = {}
+
+local function creatColorCurveScaling(b)
+    if curveCache[b] then
+        return curveCache[b]
+    end
+    local curve = C_CurveUtil.CreateColorCurve()
+    curve:SetType(Enum.LuaCurveType.Linear)
+    if b > 100 then
+        curve:AddPoint(0, CreateColor(0, 0, (b - 100) / 255, 1))
+        curve:AddPoint(1, CreateColor(0, 0, b / 255, 1))
+    else
+        local z = (100 - b) / 100
+        curve:AddPoint(0, CreateColor(0, 0, 0, 1))
+        curve:AddPoint(z, CreateColor(0, 0, 1 / 255, 1))
+        curve:AddPoint(1, CreateColor(0, 0, b / 255, 1))
+    end
+    curveCache[b] = curve
+    return curve
+end
+
+local curve100 = creatColorCurveScaling(100)
 local curve255 = fu.creatColorCurve(255, 255)
 local curve10 = fu.creatColorCurve(10, 100)
 
 -- 单体读条治疗法术
--- 施法目标的生命值倍率,防止对同一个目标重复施法,导致过量治疗
+-- 施法目标的生命值增加值,防止对同一个目标重复施法,导致过量治疗
 local helpfulSpells = {
-    [2061] = curve115,    -- 快速治疗
-    [1262763] = curve115, -- 祈福
-    [82326] = curve140,   -- 圣光术
-    [19750] = curve115,   -- 圣光闪现
-    [8936] = curve115,    -- 愈合
+    [2061] = 15,    -- 快速治疗
+    [1262763] = 15, -- 祈福
+    [82326] = 40,   -- 圣光术
+    [19750] = 15,   -- 圣光闪现
+    [8936] = 15,    -- 愈合
+    [186263] = 40,  -- 暗影愈合
 }
+
+local dispelCurve = C_CurveUtil.CreateColorCurve()
+dispelCurve:SetType(Enum.LuaCurveType.Step)
 -- ================================================================
 --                          玩家信息
 -- ================================================================
@@ -69,12 +88,12 @@ local function getPlayerInfo()
     local name = UnitName("player")
     local GUID = UnitGUID("player")
     local specIndex = C_SpecializationInfo.GetSpecialization()
-    local specID = C_SpecializationInfo.GetSpecializationInfo(specIndex)
+    local specID, _, _, _, role = C_SpecializationInfo.GetSpecializationInfo(specIndex)
 
     -- 更新玩家信息
     state.name, state.GUID = name, GUID
     state.className, state.classFilename, state.classId = fu.className, fu.classFilename, fu.classId
-    state.specIndex, state.specID = specIndex, specID
+    state.specIndex, state.specID, state.specRole = specIndex, specID, role
     -- 载入函数
     updateSpecInfo = fu.updateSpecInfo                                  -- 更新专精信息
     createClassMacro = fu.CreateClassMacro                              -- 创建类宏
@@ -110,7 +129,7 @@ local function hasLearnedAnySpell(spellIDs)
     end
     return false
 end
-
+-- 更新法术已知状态
 local function updateSpellKnown()
     -- 动态生成驱散能力
     local dispelCapabilities = {
@@ -119,11 +138,23 @@ local function updateSpellKnown()
         [3] = false, -- 诅咒驱散
         [4] = false, -- 中毒驱散
     }
-    if fu.blocks and fu.blocks.spell_cd then
-        for spellID, info in pairs(fu.blocks.spell_cd) do
-            info.isSpellKnown = IsSpellKnown(spellID)
+
+    spells = {}
+
+    if fu.spellCooldown then
+        for spellID, info in pairs(fu.spellCooldown) do
+            local isKnown = IsSpellKnown(spellID)
+            local index = info.index
+            if isKnown then
+                -- print("加入法术:", info.name, index)
+                spells[spellID] = info
+            else
+                -- print("未加入法术:", info.name, index)
+                creat(index, 1)
+            end
         end
     end
+
     if fu.heroSpell then
         local index = 0
         for spellID, info in pairs(fu.heroSpell) do
@@ -151,11 +182,14 @@ local function updatePlayerSpecInfo()
     fu.clearAllTextures()
     local specIndex = C_SpecializationInfo.GetSpecialization()
     local specID = C_SpecializationInfo.GetSpecializationInfo(specIndex)
-    if type(updateSpecInfo) == "function" then updateSpecInfo() end -- 更新专精信息
+    -- 更新专精信息
+    if type(updateSpecInfo) == "function" then
+        updateSpecInfo()
+    end
     -- 更新变量
     state.specIndex, state.specID = specIndex, specID
     state.powerType = fu.powerType or nil -- 更新能量类型
-    group_blocks = fu.group_blocks        -- 更新队伍块
+    group_blocks = group_blocks           -- 更新队伍块
     blocks = fu.blocks                    -- 更新色块
     updateSpellKnown()
     -- 更新专精色块
@@ -234,7 +268,7 @@ local function updatePlayerCasting(spellId)
         end
     end
     if blocks["施法技能"] then
-        local castingSpell = fu.castingSpellList[spellId]
+        local castingSpell = spellsList[spellId] and spellsList[spellId].index
         if castingSpell then
             creat(blocks["施法技能"], castingSpell / 255)
         else
@@ -261,9 +295,9 @@ local function updatePlayerPower(powerType)
         local power = UnitPower("player", 4)
         creat(blocks["连击点"], power / 255)
     end
-    if powerType == "HOLY_POWER" and blocks and blocks.holyPower then
+    if powerType == "HOLY_POWER" and blocks and blocks["神圣能量"] then
         local power = UnitPower("player", 9)
-        creat(blocks.holyPower, power / 255)
+        creat(blocks["神圣能量"], power / 255)
     end
     if powerType == "SOUL_SHARDS" and blocks and blocks.soulShards then
         local power = UnitPower("player", 7)
@@ -363,13 +397,16 @@ local function updateAuraByOverlayGlow(spellID)
 end
 
 ---@param spellID number 法术ID
+---@param castBarID number 施法条ID
 -- 通过事件"UNIT_SPELLCAST_SUCCEEDED"更新光环, 并更新光环的层数
-local function updateAuraBySuccess(spellID)
+local function updateAuraBySuccess(spellID, castBarID)
     local spellInfo = fu.updateAuras.bySuccess[spellID]
     if not spellInfo then return end
     for _, info in pairs(spellInfo) do
         local aura = fu.auras[info.name]
-        if aura then
+        local isCastBarValid = (not info.castBar) or (info.castBar and castBarID)
+
+        if aura and isCastBarValid then
             if aura.count then
                 if info.step then
                     if info.step > 0 then
@@ -480,12 +517,12 @@ local function updateAuraBlocks()
 end
 
 local function updateRune()
-    if blocks and blocks.runes then
+    if blocks and blocks["符文"] then
         local total = 0
         for i = 1, 6 do
             total = total + GetRuneCount(i)
         end
-        creat(blocks.runes, total / 255)
+        creat(blocks["符文"], total / 255)
     end
 end
 
@@ -509,9 +546,9 @@ end
 -- 更新玩家[一键辅助]
 local function updatePlayerAssistant()
     local spellId = C_AssistedCombat.GetNextCastSpell()
-    local assistant = fu.assistant[spellId]
-    if assistant then
-        creat(fixed["一键辅助"], assistant / 255)
+    local spellIndex = spellsList[spellId] and spellsList[spellId].index or nil
+    if spellIndex then
+        creat(fixed["一键辅助"], spellIndex / 255)
     else
         creat(fixed["一键辅助"], 0)
     end
@@ -519,39 +556,31 @@ end
 
 -- 更新法术冷却信息
 local function updateSpellCooldown()
-    local spell_cd = blocks and blocks.spell_cd
-    if not spell_cd then return end
-
-    for spellID, info in pairs(spell_cd) do
+    if not spells then return end
+    for spellID, info in pairs(spells) do
         local index = info.index
-        if not info.isSpellKnown then
-            creat(index, 1)
+        local cdDurationObj = GetSpellCooldownDuration(spellID)
+        local cdInfo = GetSpellCooldown(spellID)
+        if cdDurationObj and cdInfo then
+            local result = cdDurationObj:EvaluateRemainingDuration(curve255, 1)
+            fallbackColor:SetRGBA(0, index, 1)
+            local value = EvaluateColorFromBoolean(cdInfo.isEnabled, result, fallbackColor)
+            local _, _, b = value:GetRGB()
+            ---@diagnostic disable-next-line: undefined-field
+            if cdInfo.isOnGCD then b = 0 end
+            creat(index, b)
         else
-            local cdDurationObj = GetSpellCooldownDuration(spellID)
-            local cdInfo = GetSpellCooldown(spellID)
-            if cdDurationObj and cdInfo then
-                local result = cdDurationObj:EvaluateRemainingDuration(curve255, 1)
-                fallbackColor:SetRGBA(0, index, 1)
-                local value = EvaluateColorFromBoolean(cdInfo.isEnabled, result, fallbackColor)
-
-                local _, _, b = value:GetRGB()
-
-                ---@diagnostic disable-next-line: undefined-field
-                if cdInfo.isOnGCD then b = 0 end
-                creat(index, b)
+            creat(index, 1)
+        end
+        local chargeIndex = info.charge
+        if chargeIndex then
+            local chDurationObj = GetSpellChargeDuration(spellID)
+            if chDurationObj then
+                local result = chDurationObj:EvaluateRemainingDuration(curve255)
+                local _, _, b = result:GetRGB()
+                creat(chargeIndex, b)
             else
-                creat(index, 1)
-            end
-            local chargeIndex = info.charge
-            if chargeIndex then
-                local chDurationObj = GetSpellChargeDuration(spellID)
-                if chDurationObj then
-                    local result = chDurationObj:EvaluateRemainingDuration(curve255)
-                    local _, _, b = result:GetRGB()
-                    creat(chargeIndex, b)
-                else
-                    creat(chargeIndex, 1)
-                end
+                creat(chargeIndex, 1)
             end
         end
     end
@@ -566,42 +595,50 @@ local function updateShapeshiftForm()
 end
 
 -- 更新法术失败
-local function updateSpellFailed(spellID, isSuccess)
+local function updateTeaCountFailed(spellID)
+    if spellID ~= 115294 then return end
     local isUsable = C_Spell.IsSpellUsable(spellID)
-
-    if spellID == 115294 and not isUsable then
+    if not isUsable then
         local aura = fu.auras["法力茶"]
         if aura and aura.count then
             aura.count = 0
         end
     end
+end
 
-    if not isSuccess then
-        failedSpell = fu.failedSpells[spellID]
+local function updateSpellFailed(spellID)
+    local isUsable = C_Spell.IsSpellUsable(spellID)
+
+    if spellsList[spellID] and spellsList[spellID].failed then
+        failedSpell = spellsList[spellID].index
+    else
+        failedSpell = nil
     end
 
     if not isUsable or not failedSpell then return end
 
-    if isSuccess then
-        failedSpell = nil
-        print("插入技能: ", failedSpell, C_Spell.GetSpellName(spellID))
-        creat(fixed["法术失败"], 0)
-        return
-    end
-
-    creat(fixed["法术失败"], failedSpell / 255)
+    failedSpellId = spellID
 
     if failedSpellTimer then
         failedSpellTimer:Cancel()
         failedSpellTimer = nil
-        failedSpell = nil
     end
 
-    failedSpellTimer = C_Timer.NewTimer(0.75, function()
+    failedSpellTimer = C_Timer.NewTimer(1.5, function()
         creat(fixed["法术失败"], 0)
         failedSpellTimer = nil
         failedSpell = nil
+        failedSpellId = nil
     end)
+    creat(fixed["法术失败"], failedSpell / 255)
+end
+
+local function updateFailedSpellBySuccess(spellID)
+    if spellID ~= failedSpellId then return end
+    failedSpell = nil
+    failedSpellId = nil
+    print("|cff00ff00插入技能: |r", C_Spell.GetSpellName(spellID))
+    creat(fixed["法术失败"], 0)
 end
 
 -- ================================================================
@@ -691,10 +728,12 @@ local function updateUnitHealthInfo(unit)
     local obj = group[unit]
     if not group_blocks or not obj then return end
     local index = group_blocks.unit_start + (obj.index - 1) * group_blocks.block_num + group_blocks.healthPercent
+    obj.curve = creatColorCurveScaling(100 + obj.inComingHeals - obj.healAbsorb)
     local healthPercent = UnitHealthPercent(unit, false, obj.curve)
     local _, _, b = healthPercent:GetRGB()
     obj.healthPercent = b
     creat(index, obj.healthPercent)
+    -- print("更新生命值", GetTime(), unit, obj.inComingHeals, obj.healAbsorb)
 end
 
 local function updateUnitValid(unit)
@@ -707,16 +746,17 @@ local falseValue = CreateColor(0, 0, 0, 1)
 local function updateGroupInRange()
     if not group_blocks then return end
     local numUnits = #group_list
-    if numUnits > 1 then
+    if numUnits >= 1 then
         local unit = group_list[updateIndex]
         local obj = group[unit]
         if not obj then return end
         local index = group_blocks.unit_start + (obj.index - 1) * group_blocks.block_num + group_blocks.role
         obj.isDead = UnitIsDeadOrGhost(unit)
-        updateUnitValid(unit)
+        obj.canAssist = UnitCanAssist("player", unit)
+        obj.valid = not obj.isDead and obj.canAssist and obj.inSight
         if obj.valid then
-            local inRange = UnitInRange(unit)
-            local roleValue = roleMap[obj.role] and roleMap[obj.role] / 255 or 5
+            local inRange = UnitIsUnit(unit, "player") and true or UnitInRange(unit)
+            local roleValue = roleMap[obj.role] and roleMap[obj.role] / 255 or 5 / 255
             local trueValue = CreateColor(0, 0, roleValue, 1)
             local booleanValue = EvaluateColorFromBoolean(inRange, trueValue, falseValue)
             local _, _, b = booleanValue:GetRGB()
@@ -766,45 +806,128 @@ local function updateUnitInSight(unit)
     updateUnitValid(unit)
 end
 
-local function updateUnitCurve(unit)
+local function updateUnitHealAbsorbCurve(unit)
     local obj = group[unit]
     if not obj then return end
-    obj.curve = curve85
+    obj.healAbsorb = 15
     if obj.curveTimer then
         obj.curveTimer:Cancel()
     end
-    obj.curveTimer = C_Timer.NewTimer(1, function()
+    obj.curveTimer = C_Timer.NewTimer(0.7, function()
         if group[unit] and group[unit] == obj then
-            obj.curve = curve100
+            obj.healAbsorb = 0
             obj.curveTimer = nil
         end
         updateUnitHealthInfo(unit)
     end)
+    updateUnitHealthInfo(unit)
 end
 
-
-
-local function updateCastUnitCurve(spellID, boolean)
+local function updateUnitIncomingHealsCurve(spellID)
     local unit = state.castTargetUnit
     if not unit then return end
     local obj = group[unit]
     if not obj then return end
     local isHelpfulSpell = helpfulSpells[spellID]
-    if boolean and isHelpfulSpell then
-        obj.curve = isHelpfulSpell
-    else
-        obj.curve = curve100
+    if isHelpfulSpell then
+        obj.inComingHeals = isHelpfulSpell
     end
     updateUnitHealthInfo(unit)
+end
+
+local function updateUnitIncomingHealsCurve2()
+    --[[local unit = state.castTargetUnit
+    if not unit then
+        print("治疗预估没有恢复,没有目标")
+        return
+    end
+    local obj = group[unit]
+    if not obj then
+        print("治疗预估没有恢复,目标对象不在队伍里,目标:", unit)
+        return
+    end
+
+    obj.inComingHeals = 0
+
+    updateUnitHealthInfo(unit)
+]]
+    for unit, data in pairs(group) do
+        data.inComingHeals = 0
+        updateUnitHealthInfo(unit)
+    end
 end
 
 local function updateUnitFullAura(unit)
     local obj = group[unit]
     if not obj then return end
+    for i = 1, 5 do
+        local buff = C_UnitAuras.GetBuffDataByIndex(unit, i, "PLAYER|HELPFUL|RAID_IN_COMBAT")
+        if buff then
+            obj.aura[buff.auraInstanceID] = buff
+        end
+    end
+end
+
+local function getMaxAuraByTable(unit, spellIds)
+    local obj = group[unit]
+    if not obj or not obj.aura then return end
+    local maxAura = nil
+    for i, spellId in pairs(spellIds) do
+        for auraInstanceID, aura in pairs(obj.aura) do
+            if issecretvalue(aura.spellId) then
+                obj.aura[auraInstanceID] = nil
+            else
+                if aura.spellId == spellId and aura.expirationTime and (not maxAura or aura.expirationTime > maxAura.expirationTime) then
+                    maxAura = aura
+                end
+            end
+        end
+    end
+    return maxAura
+end
+
+local function getRejuvCount(unit)
+    local obj = group[unit]
+    if not obj or not obj.aura then return end
+    local rejuvCount = 0
+    for auraInstanceID, aura in pairs(obj.aura) do
+        if aura.spellId == 774 or aura.spellId == 155777 then
+            rejuvCount = rejuvCount + 1
+        end
+    end
+    return rejuvCount
 end
 
 local function OnUpdateUnitAura()
-    if not group_blocks then return end
+    if not group_blocks or not group_blocks.aura then return end
+    for unit, data in pairs(group) do
+        for i, spellIds in pairs(group_blocks.aura) do
+            local index = group_blocks.unit_start + (data.index - 1) * group_blocks.block_num + i
+            local maxAura = getMaxAuraByTable(unit, spellIds)
+            if maxAura and maxAura.auraInstanceID then
+                local duration = C_UnitAuras.GetAuraDuration(unit, maxAura.auraInstanceID)
+                if maxAura.expirationTime == 0 then
+                    creat(index, 1)
+                elseif duration then
+                    local auraduration = duration:EvaluateRemainingDuration(curve255)
+                    local _, _, b = auraduration:GetRGB()
+                    creat(index, b)
+                end
+            else
+                creat(index, 0)
+            end
+        end
+        if group_blocks.rejuv then
+            local index = group_blocks.unit_start + (data.index - 1) * group_blocks.block_num +
+                group_blocks.rejuv
+            local rejuvCount = getRejuvCount(unit)
+            creat(index, rejuvCount / 255)
+        end
+    end
+end
+
+--[[local function OnUpdateUnitAura()
+    if not group_blocks or not group_blocks.aura then return end
     for unit, data in pairs(group) do
         for i, spellIds in pairs(group_blocks.aura) do
             local index = group_blocks.unit_start + (data.index - 1) * group_blocks.block_num + i
@@ -828,11 +951,11 @@ local function OnUpdateUnitAura()
             end
         end
     end
-    if fu.group_blocks.rejuv then
+    if group_blocks.rejuv then
         for unit, data in pairs(fu.group) do
             local has_rejuv_count = 0
-            local index = fu.group_blocks.unit_start + (data.index - 1) * fu.group_blocks.block_num +
-                fu.group_blocks.rejuv
+            local index = group_blocks.unit_start + (data.index - 1) * group_blocks.block_num +
+                group_blocks.rejuv
             local rejuv_aura = C_UnitAuras.GetUnitAuraBySpellID(unit, 774)
             local rejuv2_aura = C_UnitAuras.GetUnitAuraBySpellID(unit, 155777)
             if rejuv_aura and rejuv_aura.sourceUnit == "player" then
@@ -844,7 +967,7 @@ local function OnUpdateUnitAura()
             creat(index, has_rejuv_count / 255)
         end
     end
-end
+end]]
 
 local function getAuraDispelTypeColor(unit)
     local obj = group[unit]
@@ -862,8 +985,11 @@ local function getAuraDispelTypeColor(unit)
 end
 
 local function clearGroupBlocks()
-    for i = 40, 200 do
-        creat(i, 0)
+    if group_blocks then
+        local startIndex = group_blocks.unit_start
+        for i = startIndex, 255 do
+            creat(i, 0)
+        end
     end
 end
 
@@ -885,15 +1011,19 @@ end
 local function updateGroup()
     table.wipe(group)
     table.wipe(group_list)
-    clearGroupBlocks()
+
     local i = 1
     for unit in fu.IterateGroupMembers() do
         table.insert(group_list, unit)
+        local role = UnitGroupRolesAssigned(unit)
+        if unit == "player" then
+            role = state.specRole
+        end
         group[unit] = {
             index = i,
             name = GetUnitName(unit, true),
             GUID = UnitGUID(unit),
-            role = UnitGroupRolesAssigned(unit),
+            role = role,
             isDead = UnitIsDeadOrGhost(unit),
             inRange = UnitInRange(unit),
             canAttack = UnitCanAttack("player", unit),
@@ -901,6 +1031,8 @@ local function updateGroup()
             inSight = true,
             inSightTimer = nil,
             curve = curve100,
+            healAbsorb = 0,
+            inComingHeals = 0,
             curveTimer = nil,
             aura = {}
         }
@@ -909,6 +1041,7 @@ local function updateGroup()
         updateUnitFullAura(unit)
         i = i + 1
     end
+
     fu.group = group
 end
 
@@ -931,13 +1064,13 @@ function frame:PLAYER_LOGIN()
     updateGroupCount()
     updateGroupType()
     fu.readKeybindings()
-    updateSpellKnown()
 end
 
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 function frame:PLAYER_ENTERING_WORLD()
     updatePlayerState()
-    updateGroup()
+    updateSpellKnown()
+    C_Timer.After(1, function() updateGroup() end)
 end
 
 frame:RegisterEvent("ZONE_CHANGED")
@@ -1027,13 +1160,15 @@ end
 frame:RegisterUnitEvent("UNIT_SPELLCAST_START", "player")
 frame:RegisterUnitEvent("UNIT_SPELLCAST_STOP", "player")
 function frame:UNIT_SPELLCAST_START(unitTarget, castGUID, spellID, castBarID)
+    -- print("开始施法时间:", GetTime())
     state.casting = true
+    updateUnitIncomingHealsCurve(spellID)
     updatePlayerCasting(spellID)
-    updateCastUnitCurve(spellID, true)
 end
 
 function frame:UNIT_SPELLCAST_STOP(unitTarget, castGUID, spellID, castBarID)
-    updateCastUnitCurve(spellID, false)
+    -- print("结束施法时间:", GetTime())
+    updateUnitIncomingHealsCurve2()
     state.casting = false
     state.castTargetUnit = nil
     state.castTargetName = nil
@@ -1062,8 +1197,8 @@ end
 frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 function frame:UNIT_SPELLCAST_SUCCEEDED(unitTarget, castGUID, spellID, castBarID)
     if not issecretvalue(spellID) then
-        updateAuraBySuccess(spellID)
-        updateSpellFailed(spellID, true)
+        updateAuraBySuccess(spellID, castBarID)
+        updateFailedSpellBySuccess(spellID)
         -- print(spellID)
         if spellID == 384255 or spellID == 200749 then
             print("切换天赋")
@@ -1075,7 +1210,8 @@ end
 frame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
 function frame:UNIT_SPELLCAST_FAILED(unitTarget, castGUID, spellID, castBarID)
     if not issecretvalue(spellID) then
-        updateSpellFailed(spellID, false)
+        updateTeaCountFailed(spellID)
+        updateSpellFailed(spellID)
     end
 end
 
@@ -1107,11 +1243,11 @@ end
 
 frame:RegisterEvent("UNIT_HEAL_ABSORB_AMOUNT_CHANGED")
 function frame:UNIT_HEAL_ABSORB_AMOUNT_CHANGED(unit)
-    updateUnitCurve(unit)
     if unit == "player" then
         updatePlayerHealth()
     end
     if group[unit] then
+        updateUnitHealAbsorbCurve(unit)
         updateUnitHealthInfo(unit)
         updateUnitDeathByHealthInfo(unit)
     end
@@ -1197,11 +1333,19 @@ function frame:SPELL_UPDATE_COOLDOWN(spellID)
 end
 
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+local rosterTimer
 function frame:GROUP_ROSTER_UPDATE()
     state.castTargetName, state.castTargetUnit = nil, nil
-    updateGroup()
-    updateGroupCount()
-    updateGroupType()
+    if rosterTimer then
+        rosterTimer:Cancel()
+    end
+    rosterTimer = C_Timer.NewTimer(1, function()
+        clearGroupBlocks()
+        updateGroup()
+        updateGroupCount()
+        updateGroupType()
+        rosterTimer = nil
+    end)
 end
 
 frame:RegisterEvent("UNIT_DIED")
@@ -1278,21 +1422,27 @@ function frame:UNIT_AURA(unit, info)
     if info.isFullUpdate then
         updateUnitFullAura(unit)
         return
-    elseif info.addedAuras then
+    end
+    if info.addedAuras then
         for k, v in pairs(info.addedAuras) do
-            if not issecretvalue(v.spellId) then
+            if not issecretvalue(v.spellId) and v.sourceUnit == "player" then
+                -- print("|cnGREEN_FONT_COLOR:新增光环: |r", v.auraInstanceID, v.spellId, v.name)
                 obj.aura[v.auraInstanceID] = v
             end
         end
-    elseif info.updatedAuraInstanceIDs then
+    end
+    if info.updatedAuraInstanceIDs then
         for _, v in pairs(info.updatedAuraInstanceIDs) do
             local aura = C_UnitAuras.GetAuraDataByAuraInstanceID(unit, v)
-            if aura and not issecretvalue(aura.spellId) then
+            if aura and not issecretvalue(aura.spellId) and aura.sourceUnit == "player" then
+                -- print("|cnYELLOW_FONT_COLOR:更新光环: |r", aura.auraInstanceID, aura.spellId, aura.name)
                 obj.aura[aura.auraInstanceID] = aura
             end
         end
-    elseif info.removedAuraInstanceIDs then
+    end
+    if info.removedAuraInstanceIDs then
         for _, v in pairs(info.removedAuraInstanceIDs) do
+            -- print("|cnRED_FONT_COLOR:移除光环: |r", v)
             obj.aura[v] = nil
         end
     end

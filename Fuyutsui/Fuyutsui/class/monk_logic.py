@@ -2,6 +2,52 @@
 
 from utils import *
 
+# 将需要驱散的首领 ID
+need_dispel_bosses = {4, 5}
+# 不需要驱散的首领 ID
+no_dispel_bosses = {64}
+
+action_map = {
+    1: ("轮回之触", "轮回之触"),
+    10: ("猛虎掌", "猛虎掌"),
+    11: ("神鹤引项踢", "神鹤引项踢"),
+    12: ("幻灭踢", "幻灭踢"),
+    13: ("爆炸酒桶", "爆炸酒桶"),
+    14: ("真气爆裂", "真气爆裂"),
+    15: ("醉酿投", "醉酿投"),
+    16: ("火焰之息", "火焰之息"),
+    17: ("碧玉疾风", "碧玉疾风"),
+    20: ("幻灭踢", "幻灭踢"),
+    21: ("怒雷破", "怒雷破"),
+    22: ("旭日东升踢", "旭日东升踢"),
+    18: ("碎玉闪电", "碎玉闪电"),
+    19: ("神鹤引项踢", "神鹤引项踢"),
+    23: ("风领主之击", "风领主之击"),
+    24: ("疾风呼啸踢", "旭日东升踢"),
+    25: ("升龙霸", "升龙霸"),
+}
+
+failed_spell_map = {
+    1: "轮回之触",
+    2: "扫堂腿",
+    3: "魂体双分",
+    4: "魂体双分：转移",
+    5: "作茧缚命",
+    6: "还魂术",
+    7: "平心之环",
+    8: "分筋错骨",
+    9: "玄牛下凡",
+}
+
+# 找到失败法术，必须是法术有冷却时间，并且冷却时间为 0
+def _get_failed_spell(state_dict):
+    法术失败 = state_dict.get("法术失败", 0)
+    spells = state_dict.get("spells") or {}
+    spell_name = failed_spell_map.get(法术失败)
+    if spell_name and spells.get(spell_name, -1) == 0:
+        return spell_name
+    return None
+
 def run_monk_logic(state_dict, spec_name):
     spells = state_dict.get("spells") or {}
     战斗 = state_dict.get("战斗")
@@ -18,36 +64,20 @@ def run_monk_logic(state_dict, spec_name):
     首领战 = int(state_dict.get("首领战", 0) or 0)
     难度 = int(state_dict.get("难度", 0) or 0)
     英雄天赋 = int(state_dict.get("英雄天赋", 0) or 0)
-    
+
+    失败法术 = _get_failed_spell(state_dict)
+    tup = action_map.get(一键辅助)
 
     action_hotkey = None
     current_step = "无匹配技能"
     unit_info = {}
-
-
-
-    def _failed_spell_logic():
-        spell_map = {
-            1: "轮回之触",
-            2: "扫堂腿",
-            3: "魂体双分",
-            4: "魂体双分：转移",
-            5: "作茧缚命",
-            6: "还魂术",
-            7: "平心之环",
-            8: "分筋错骨",
-            9: "玄牛下凡",
-        }
-        spell_name = spell_map.get(法术失败)
-
-        if spell_name and spells.get(spell_name, -1) == 0:
-            current_step = f"施放 {spell_name}"
-            action_hotkey = get_hotkey(0, spell_name)
-            return current_step, action_hotkey
-        
-        return None, None
-
-    if spec_name == "酒仙":
+    
+    if 引导 > 0:
+        current_step = "在引导,不执行任何操作"
+    elif 法术失败 != 0 and 失败法术 is not None:
+        current_step = f"施放 {失败法术}"
+        action_hotkey = get_hotkey(0, 失败法术)
+    elif spec_name == "酒仙":
         酒池 = state_dict.get("酒池", 0)
         目标生命值 = state_dict.get("目标生命值", 0)
         敌人人数 = state_dict.get("敌人人数", 0)
@@ -77,7 +107,6 @@ def run_monk_logic(state_dict, spec_name):
         def _combat_logic():
             current_step = None
             action_hotkey = None
-
             if 酒池 > 10 and 天神酒 == 0 and 天神充能 == 0:
                 current_step = "施放 天神酒"
                 action_hotkey = get_hotkey(0, "天神酒")
@@ -105,31 +134,16 @@ def run_monk_logic(state_dict, spec_name):
             elif 醉酿投 < 1:
                 current_step = "施放 醉酿投"
                 action_hotkey = get_hotkey(0, "醉酿投")
+            elif tup:
+                current_step = f"施放 {tup[0]}"
+                action_hotkey = get_hotkey(0, tup[1])
             else:
-                action_map = {
-                1: ("轮回之触", "轮回之触"),
-                2: ("猛虎掌", "猛虎掌"),
-                3: ("神鹤引项踢", "神鹤引项踢"),
-                4: ("幻灭踢", "幻灭踢"),
-                5: ("爆炸酒桶", "爆炸酒桶"),
-                6: ("真气爆裂", "真气爆裂"),
-                7: ("醉酿投", "醉酿投"),
-                8: ("火焰之息", "火焰之息"),
-                9: ("碧玉疾风", "碧玉疾风"),
-            }
-                tup = action_map.get(一键辅助)
-                if tup:
-                    current_step = f"施放 {tup[0]}"
-                    action_hotkey = get_hotkey(0, tup[1])
-                else:
-                    current_step = "战斗中-无匹配技能"
+                current_step = "战斗中-无匹配技能"
 
             return current_step, action_hotkey
 
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
-        elif 法术失败 != 0:
-            current_step, action_hotkey = _failed_spell_logic()
         elif 战斗 and 目标有效:
             current_step, action_hotkey = _combat_logic()
         else:
@@ -179,37 +193,50 @@ def run_monk_logic(state_dict, spec_name):
         # 不需要驱散的首领 ID
         no_dispel_bosses = {64}
 
-        if 施法技能 == 5:  # 氤氲之雾
+        if 施法技能 == 30:  # 氤氲之雾
             玄牛之力 = 0
             生生不息1 = 0
-        if 施法技能 == 1:  # 神龙之赐
+        if 施法技能 == 26:  # 神龙之赐
             神龙层数 = 0
             生生不息2 = 0
-        if 施法技能 == 2:  # 活血术
+        if 施法技能 == 27:  # 活血术
             生生不息2 = 0
-        
+
+        驱散单位 = None
+        if 魔法单位 is not None:
+            if 队伍类型 == 46 and 首领战 not in no_dispel_bosses:
+                驱散单位 = 魔法单位
+            elif 队伍类型 <= 40 and 首领战 in need_dispel_bosses:
+                驱散单位 = 魔法单位
+        if 驱散单位 is None:
+            驱散单位 = 疾病单位
+        if 驱散单位 is None:
+            驱散单位 = 中毒单位
+
+        unit_info = {
+            "驱散单位": 驱散单位,
+            "无复苏单位": 无复苏单位,
+            "无复苏生命值": 无复苏生命值,
+            "无氤氲单位": 无氤氲单位,
+            "无氤氲生命值": 无氤氲生命值,
+            "生命值最低单位": 生命值最低单位,
+            "最低生命值": 最低生命值,
+            "无复苏单位": 无复苏单位,
+            "无复苏生命值": 无复苏生命值,
+        }
+
         if 引导 > 0:
-            if 施法技能 == 6 and 能量值 >= 95: # 法力茶
+            if 施法技能 == 31 and 能量值 >= 95: # 法力茶
                 current_step = "施放 复苏之雾"
                 action_hotkey = get_hotkey(1, "复苏之雾")
-            elif 施法技能 == 6 and 战斗 and count80 >= 3 and 神龙层数 >= 8: # 法力茶
+            elif 施法技能 == 31 and 战斗 and count80 >= 3 and 神龙层数 >= 8: # 法力茶
                 current_step = f"施放 活血术 on {生命值最低单位}"
                 action_hotkey = get_hotkey(int(生命值最低单位), "活血术")
-            elif 施法技能 == 4 and 法术失败 != 0: # 天神御身
-                current_step, action_hotkey = _failed_spell_logic()
             else:
                 current_step = "在引导,不执行任何操作"
-        elif 法术失败 != 0:
-            current_step, action_hotkey = _failed_spell_logic()
-        elif 清创生血 == 0 and 魔法单位 is not None and (首领战 not in no_dispel_bosses):
-            current_step = f"施放 清创生血 on {魔法单位}"
-            action_hotkey = get_hotkey(int(魔法单位), "清创生血")
-        elif 清创生血 == 0 and 疾病单位 is not None:
-            current_step = f"施放 清创生血 on {疾病单位}"
-            action_hotkey = get_hotkey(int(疾病单位), "清创生血")
-        elif 清创生血 == 0 and 中毒单位 is not None:
-            current_step = f"施放 清创生血 on {中毒单位}"
-            action_hotkey = get_hotkey(int(中毒单位), "清创生血")
+        elif 清创生血 == 0 and 驱散单位 is not None:
+            current_step = f"施放 清创生血 on {驱散单位}"
+            action_hotkey = get_hotkey(int(驱散单位), "清创生血")
         elif 神龙层数 >= 8 and 生命值最低单位 is not None and count80 >= 2 :
             current_step = f"施放 活血术 on {生命值最低单位}"
             action_hotkey = get_hotkey(int(生命值最低单位), "活血术")
@@ -258,7 +285,7 @@ def run_monk_logic(state_dict, spec_name):
                 current_step = f"施放 复苏之雾 on {无复苏单位}"
                 action_hotkey = get_hotkey(int(无复苏单位), "复苏之雾")
             # 氤氲之雾
-            elif 玄牛之力 > 0 and 施法技能 != 5 and 无氤氲单位 is not None:
+            elif 玄牛之力 > 0 and 施法技能 != 30 and 无氤氲单位 is not None:
                 current_step = f"施放 氤氲之雾 on {无氤氲单位}"
                 action_hotkey = get_hotkey(int(无氤氲单位), "氤氲之雾")
             # 神鹤引项踢
@@ -283,26 +310,10 @@ def run_monk_logic(state_dict, spec_name):
 
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
-        elif 法术失败 != 0:
-            current_step, action_hotkey = _failed_spell_logic()
-        elif 战斗 and 目标有效:
-            action_map = {
-                12: ("幻灭踢", "幻灭踢"),
-                13: ("怒雷破", "怒雷破"),
-                14: ("旭日东升踢", "旭日东升踢"),
-                2: ("猛虎掌", "猛虎掌"),
-                10: ("碎玉闪电", "碎玉闪电   "),
-                11: ("神鹤引项踢", "神鹤引项踢"),
-                1: ("轮回之触", "轮回之触"),
-                15: ("风领主之击", "风领主之击"),
-                16: ("疾风呼啸踢", "旭日东升踢"),
-                17: ("升龙霸", "升龙霸"),
-            }
-            tup = action_map.get(一键辅助)
-            if tup:
-                current_step = f"施放 {tup[0]}"
-                action_hotkey = get_hotkey(0, tup[1])
-            else:
-                current_step = "战斗中-无匹配技能"
+        elif 战斗 and 目标有效 and tup:
+            current_step = f"施放 {tup[0]}"
+            action_hotkey = get_hotkey(0, tup[1])
+        else:
+            current_step = "战斗中-无匹配技能"
 
     return action_hotkey, current_step, unit_info

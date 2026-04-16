@@ -47,8 +47,9 @@ function fu.updateOrCreatTextureByIndex(i, b)
 end
 
 function fu.clearAllTextures()
-    for i = 10, BLOCK_FIX_CONFIG.blockCount do
+    for i = 20, BLOCK_FIX_CONFIG.blockCount do
         fu.updateOrCreatTextureByIndex(i, 0)
+        -- print("清除色块:", i)
     end
 end
 

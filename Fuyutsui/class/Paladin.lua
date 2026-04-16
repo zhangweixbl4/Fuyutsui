@@ -4,6 +4,16 @@ if fu.classId ~= 2 then return end
 fu.HelpfulSpellId = 62124
 fu.HarmfulSpellId = 275773
 
+fu.spellCooldown = {
+    [115750] = { index = 31, name = "盲目之光" },
+    [853] = { index = 32, name = "制裁之锤" },
+    [642] = { index = 33, name = "圣盾术" },
+    [6940] = { index = 34, name = "牺牲祝福" },
+    [1044] = { index = 35, name = "自由祝福" },
+    [1022] = { index = 36, name = "保护祝福" },
+    [633] = { index = 37, name = "圣疗术" }
+}
+
 function fu.updateSpecInfo()
     local specIndex = C_SpecializationInfo.GetSpecialization()
     fu.powerType = nil
@@ -13,9 +23,10 @@ function fu.updateSpecInfo()
     if specIndex == 1 then
         fu.powerType = "MANA"
         fu.blocks = {
-            holyPower = 21,
+            ["神圣能量"] = 21,
             ["施法技能"] = 22,
             ["施法目标"] = 23,
+            ["目标距离"] = 24,
             auras = {
                 ["神圣意志"] = {
                     index = 25,
@@ -27,27 +38,27 @@ function fu.updateSpecInfo()
                     auraRef = fu.auras["圣光灌注"],
                     showKey = "remaining",
                 },
-                ["神性层数"] = {
+                ["灌注层数"] = {
                     index = 27,
+                    auraRef = fu.auras["灌注层数"],
+                    showKey = "count",
+                },
+                ["神性层数"] = {
+                    index = 28,
                     auraRef = fu.auras["神性之手"],
                     showKey = "count",
                 },
             },
-            spell_cd = {
-                [20473] = { index = 28, name = "神圣震击", charge = 29},
-                [4987] = { index = 30, name = "清洁术" },
-                [115750] = { index = 31, name = "盲目之光" },
-                [275773] = { index = 32, name = "审判" },
-                [375576] = { index = 33, name = "圣洁鸣钟" },
-                [114165] = { index = 34, name = "神圣棱镜" },
-                [31821] = { index = 35, name = "光环掌握" },
-                [6940] = { index = 36, name = "牺牲祝福" },
-                [1044] = { index = 37, name = "自由祝福" },
-                [853] = { index = 38, name = "制裁之锤" },
-                [1022] = { index = 39, name = "保护祝福" },
-                [633] = { index = 40, name = "圣疗术" },
-            },
         }
+
+        fu.spellCooldown[20473] = { index = 38, name = "神圣震击", charge = 39 }
+        fu.spellCooldown[4987] = { index = 40, name = "清洁术" }
+        fu.spellCooldown[275773] = { index = 41, name = "审判" }
+        fu.spellCooldown[375576] = { index = 42, name = "圣洁鸣钟" }
+        fu.spellCooldown[114165] = { index = 43, name = "神圣棱镜" }
+        fu.spellCooldown[31821] = { index = 44, name = "光环掌握" }
+        fu.spellCooldown[200025] = { index = 45, name = "美德道标" }
+
         fu.group_blocks = {
             unit_start = 70,
             block_num = 6,
@@ -55,16 +66,16 @@ function fu.updateSpecInfo()
             role = 2,
             dispel = 3,
             aura = {
-                [4] = { 156322 },        -- 永恒之火
-                [5] = { 1244893 },       -- 救世道标
-                [6] = { 53563, 156910 }, -- 圣光道标, 信仰道标
+                [4] = { 156322 },        -- 永恒之火, 156322
+                [5] = { 1244893 },       -- 救世道标, 1244893
+                [6] = { 53563, 156910 }, -- 圣光道标, 信仰道标, 53563, 156910
             },
         }
     elseif specIndex == 2 then
         fu.HarmfulSpellId = 275779
         fu.powerType = "MANA"
         fu.blocks = {
-            holyPower = 21,
+            ["神圣能量"] = 21,
             auras = {
                 ["神圣意志"] = {
                     index = 22,
@@ -86,34 +97,33 @@ function fu.updateSpecInfo()
                     auraRef = fu.auras["闪耀之光"],
                     showKey = "remaining",
                 },
-                ["神圣军备"] = {
+                ["闪光层数"] = {
                     index = 26,
+                    auraRef = fu.auras["闪耀之光"],
+                    showKey = "count",
+                },
+                ["神圣军备"] = {
+                    index = 27,
                     auraRef = fu.updateAuras.byIcon[432459],
                     showKey = "isIcon",
                 },
             },
-            spell_cd = {
-                [432459] = { index = 31, spellId = 432459, name = "神圣壁垒", charge = 32 },
-                [213644] = { index = 33, spellId = 213644, name = "清毒术" },
-                [115750] = { index = 34, spellId = 115750, name = "盲目之光" },
-                [275779] = { index = 35, spellId = 275779, name = "审判" },
-                [375576] = { index = 36, spellId = 375576, name = "圣洁鸣钟" },
-                [6940] = { index = 37, spellId = 6940, name = "牺牲祝福" },
-                [1044] = { index = 38, spellId = 1044, name = "自由祝福" },
-                [853] = { index = 39, spellId = 853, name = "制裁之锤" },
-                [1022] = { index = 40, spellId = 1022, name = "保护祝福" },
-                [31935] = { index = 41, spellId = 31935, name = "复仇者之盾" },
-                [26573] = { index = 42, spellId = 26573, name = "奉献" },
-                [53600] = { index = 43, spellId = 53600, name = "正义盾击" },
-                [204019] = { index = 44, spellId = 204019, name = "祝福之锤" },
-                [642] = { index = 45, spellId = 642, name = "圣盾术" },
-            },
+
         }
+
+        fu.spellCooldown[432459] = { index = 38, name = "神圣壁垒", charge = 39 }
+        fu.spellCooldown[213644] = { index = 40, name = "清毒术" }
+        fu.spellCooldown[275779] = { index = 41, name = "审判" }
+        fu.spellCooldown[375576] = { index = 42, name = "圣洁鸣钟" }
+        fu.spellCooldown[31935] = { index = 43, name = "复仇者之盾" }
+        fu.spellCooldown[26573] = { index = 44, name = "奉献" }
+        fu.spellCooldown[53600] = { index = 45, name = "正义盾击" }
+        fu.spellCooldown[204019] = { index = 46, name = "祝福之锤" }
     elseif specIndex == 3 then
         fu.HarmfulSpellId = 20271
         fu.powerType = "MANA"
         fu.blocks = {
-            holyPower = 21,
+            ["神圣能量"] = 21,
             auras = {
                 ["神圣意志"] = {
                     index = 22,
@@ -121,20 +131,14 @@ function fu.updateSpecInfo()
                     showKey = "remaining",
                 },
             },
-            spell_cd = {
-                [213644] = { index = 31, spellId = 213644, name = "清毒术" },
-                [115750] = { index = 32, spellId = 115750, name = "盲目之光" },
-                [20271] = { index = 33, spellId = 20271, name = "审判" ,charge = 42},
-                [375576] = { index = 34, spellId = 375576, name = "圣洁鸣钟" },
-                [6940] = { index = 35, spellId = 6940, name = "牺牲祝福" },
-                [1044] = { index = 36, spellId = 1044, name = "自由祝福" },
-                [853] = { index = 37, spellId = 853, name = "制裁之锤" },
-                [1022] = { index = 38, spellId = 1022, name = "保护祝福" },
-                [184575] = { index = 39, spellId = 184575, name = "公正之剑" },
-                [343527] = { index = 40, spellId = 343527, name = "处决宣判" },
-                [255937] = { index = 41, spellId = 255937, name = "灰烬觉醒" },
-            },
         }
+
+        fu.spellCooldown[213644] = { index = 38, name = "清毒术" }
+        fu.spellCooldown[20271] = { index = 39, name = "审判", charge = 40 }
+        fu.spellCooldown[375576] = { index = 41, name = "圣洁鸣钟" }
+        fu.spellCooldown[184575] = { index = 42, name = "公正之剑" }
+        fu.spellCooldown[343527] = { index = 43, name = "处决宣判" }
+        fu.spellCooldown[255937] = { index = 44, name = "灰烬觉醒" }
     end
 end
 
@@ -162,7 +166,7 @@ function fu.CreateClassMacro()
         [17] = "处决宣判",
         [18] = "最终审判",
         [19] = "复仇之怒",
-        [20] = "灰烬觉醒",
+        [20] = "[spec:2]圣洁鸣钟;[spec:3]灰烬觉醒",
         [21] = "复仇者之盾",
         [22] = "责难",
         [23] = "远古列王守卫",

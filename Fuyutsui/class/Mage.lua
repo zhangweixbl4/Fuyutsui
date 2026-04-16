@@ -58,19 +58,19 @@ function fu.updateSpecInfo()
                     showKey = "count",
                 },
             },
-            spell_cd = {
-                [475] = { index = 41, name = "解除诅咒" },
-                [110959] = { index = 42, name = "强化隐形术" },
-                [122] = { index = 43, name = "冰霜新星" },
-                [2139] = { index = 44, name = "法术反制" },
-                [31661] = { index = 45, name = "龙息术" },
-                [1248829] = { index = 46, name = "暴风雪" },
-                [190356] = { index = 47, name = "暴风雪" },
-                [84714] = { index = 48, name = "寒冰宝珠" },
-                [205021] = { index = 49, name = "冰霜射线" },
-                [11426] = { index = 50, name = "寒冰护体" },
-                [44614] = { index = 51, name = "冰风暴", charge = 52},
-            },
+        }
+        fu.spellCooldown = {
+            [475] = { index = 41, name = "解除诅咒" },
+            [110959] = { index = 42, name = "强化隐形术" },
+            [122] = { index = 43, name = "冰霜新星" },
+            [2139] = { index = 44, name = "法术反制" },
+            [31661] = { index = 45, name = "龙息术" },
+            [1248829] = { index = 46, name = "暴风雪" },
+            [190356] = { index = 47, name = "暴风雪" },
+            [84714] = { index = 48, name = "寒冰宝珠" },
+            [205021] = { index = 49, name = "冰霜射线" },
+            [11426] = { index = 50, name = "寒冰护体" },
+            [44614] = { index = 51, name = "冰风暴", charge = 52 },
         }
     end
 end

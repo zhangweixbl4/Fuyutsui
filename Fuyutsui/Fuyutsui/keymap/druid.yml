@@ -698,3 +698,15 @@
   unit: 0
   技能: 狂暴回复
   热键: CTRL-SHIFT-NUMPAD5
+176:
+  unit: 0
+  技能: 台风
+  热键: CTRL-SHIFT-NUMPAD6
+177:
+  unit: 0
+  技能: 夺魂咆哮
+  热键: CTRL-SHIFT-NUMPAD7
+178:
+  unit: 0
+  技能: 乌索尔旋风
+  热键: CTRL-SHIFT-NUMPAD8

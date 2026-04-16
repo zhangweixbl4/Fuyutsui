@@ -20,36 +20,36 @@ function fu.updateSpecInfo()
             auras = {
 
             },
-            spell_cd = {
-                [202168] = { index = 31, name = "胜利在望" },
-                [376079] = { index = 32, name = "勇士之矛" },
-                [6544] = { index = 33, name = "英勇飞跃" },
-                [97462] = { index = 34, name = "集结呐喊" },
-                [46968] = { index = 35, name = "震荡波" },
-                [107570] = { index = 36, name = "风暴之锤" },
-                [384110] = { index = 37, name = "破裂投掷" },
-                [64382] = { index = 38, name = "碎裂投掷" },
-                [5246] = { index = 39, name = "破胆怒吼" },
-            },
+        }
+        fu.spellCooldown = {
+            [202168] = { index = 31, name = "胜利在望" },
+            [376079] = { index = 32, name = "勇士之矛" },
+            [6544] = { index = 33, name = "英勇飞跃" },
+            [97462] = { index = 34, name = "集结呐喊" },
+            [46968] = { index = 35, name = "震荡波" },
+            [107570] = { index = 36, name = "风暴之锤" },
+            [384110] = { index = 37, name = "破裂投掷" },
+            [64382] = { index = 38, name = "碎裂投掷" },
+            [5246] = { index = 39, name = "破胆怒吼" },
         }
     elseif specIndex == 2 then
         fu.blocks = {
             ["敌人人数"] = 21,
             auras = {
 
-            },
-            spell_cd = {
-                [202168] = { index = 31, name = "胜利在望" },
-                [376079] = { index = 32, name = "勇士之矛" },
-                [6544] = { index = 33, name = "英勇飞跃" },
-                [97462] = { index = 34, name = "集结呐喊" },
-                [46968] = { index = 35, name = "震荡波" },
-                [107570] = { index = 36, name = "风暴之锤" },
-                [384110] = { index = 37, name = "破裂投掷" },
-                [64382] = { index = 38, name = "碎裂投掷" },
-                [5246] = { index = 39, name = "破胆怒吼" },
-                [1719] = { index = 40, name = "鲁莽" },
-            },
+            }
+        }
+        fu.spellCooldown = {
+            [202168] = { index = 31, name = "胜利在望" },
+            [376079] = { index = 32, name = "勇士之矛" },
+            [6544] = { index = 33, name = "英勇飞跃" },
+            [97462] = { index = 34, name = "集结呐喊" },
+            [46968] = { index = 35, name = "震荡波" },
+            [107570] = { index = 36, name = "风暴之锤" },
+            [384110] = { index = 37, name = "破裂投掷" },
+            [64382] = { index = 38, name = "碎裂投掷" },
+            [5246] = { index = 39, name = "破胆怒吼" },
+            [1719] = { index = 40, name = "鲁莽" },
         }
     elseif specIndex == 3 then
         fu.blocks = {
@@ -62,21 +62,21 @@ function fu.updateSpecInfo()
                     showKey = "remaining",
                 },
             },
-            spell_cd = {
-                [202168] = { index = 31, name = "胜利在望" },
-                [376079] = { index = 32, name = "勇士之矛" },
-                [6544] = { index = 33, name = "英勇飞跃" },
-                [97462] = { index = 34, name = "集结呐喊" },
-                [46968] = { index = 35, name = "震荡波" },
-                [107570] = { index = 36, name = "风暴之锤" },
-                [384110] = { index = 37, name = "破裂投掷" },
-                [64382] = { index = 38, name = "碎裂投掷" },
-                [5246] = { index = 39, name = "破胆怒吼" },
-                [2565] = { index = 40, name = "盾牌格挡", charge = 41 },
-                [385952] = { index = 42, name = "盾牌冲锋" },
-                [107574] = { index = 43, name = "天神下凡" },
-                [1160] = { index = 44, name = "挫志怒吼" },
-            },
+        }
+        fu.spellCooldown = {
+            [202168] = { index = 31, name = "胜利在望" },
+            [376079] = { index = 32, name = "勇士之矛" },
+            [6544] = { index = 33, name = "英勇飞跃" },
+            [97462] = { index = 34, name = "集结呐喊" },
+            [46968] = { index = 35, name = "震荡波" },
+            [107570] = { index = 36, name = "风暴之锤" },
+            [384110] = { index = 37, name = "破裂投掷" },
+            [64382] = { index = 38, name = "碎裂投掷" },
+            [5246] = { index = 39, name = "破胆怒吼" },
+            [2565] = { index = 40, name = "盾牌格挡", charge = 41 },
+            [385952] = { index = 42, name = "盾牌冲锋" },
+            [107574] = { index = 43, name = "天神下凡" },
+            [1160] = { index = 44, name = "挫志怒吼" },
         }
     end
 end

@@ -39,26 +39,27 @@ function fu.updateSpecInfo()
                     showKey = "remaining",
                 },
             },
-            spell_cd = {
-                [121253] = { index = 31, name = "醉酿投", charge = 32 },
-                [119582] = { index = 33, name = "活血酒", charge = 34 },
-                [322507] = { index = 35, name = "天神酒", charge = 36 },
-                [1241059] = { index = 37, name = "天神灌注", charge = 38 },
-                [322109] = { index = 39, name = "轮回之触" },
-                [119381] = { index = 40, name = "扫堂腿" },
-                [322101] = { index = 41, name = "移花接木" },
-                [101643] = { index = 42, name = "魂体双分" },
-                [119996] = { index = 43, name = "魂体双分：转移" },
-                [116705] = { index = 44, name = "切喉手" },
-                [115181] = { index = 45, name = "火焰之息" },
-                [123986] = { index = 46, name = "真气爆裂" },
-                [325153] = { index = 47, name = "爆炸酒桶" },
-                [198898] = { index = 48, name = "赤精之歌" },
-                [115399] = { index = 49, name = "玄牛酒" },
-                [116844] = { index = 50, name = "平心之环" },
-                [115078] = { index = 51, name = "分筋错骨" },
-                [132578] = { index = 52, name = "玄牛下凡" },
-            },
+
+        }
+        fu.spellCooldown = {
+            [121253] = { index = 31, name = "醉酿投", charge = 32 },
+            [119582] = { index = 33, name = "活血酒", charge = 34 },
+            [322507] = { index = 35, name = "天神酒", charge = 36 },
+            [1241059] = { index = 37, name = "天神灌注", charge = 38 },
+            [322109] = { index = 39, name = "轮回之触" },
+            [119381] = { index = 40, name = "扫堂腿" },
+            [322101] = { index = 41, name = "移花接木" },
+            [101643] = { index = 42, name = "魂体双分" },
+            [119996] = { index = 43, name = "魂体双分：转移" },
+            [116705] = { index = 44, name = "切喉手" },
+            [115181] = { index = 45, name = "火焰之息" },
+            [123986] = { index = 46, name = "真气爆裂" },
+            [325153] = { index = 47, name = "爆炸酒桶" },
+            [198898] = { index = 48, name = "赤精之歌" },
+            [115399] = { index = 49, name = "玄牛酒" },
+            [116844] = { index = 50, name = "平心之环" },
+            [115078] = { index = 51, name = "分筋错骨" },
+            [132578] = { index = 52, name = "玄牛下凡" },
         }
     elseif specIndex == 2 then
         fu.HarmfulSpellId, fu.HelpfulSpellId = 100780, 115151
@@ -103,23 +104,23 @@ function fu.updateSpecInfo()
                     showKey = "remaining",
                 },
             },
-            spell_cd = {
-                [116680] = { index = 31, name = "雷光聚神茶", charge = 32 },
-                [115151] = { index = 33, name = "复苏之雾", charge = 34 },
-                [115310] = { index = 35, name = "还魂术" },
-                [116849] = { index = 36, name = "作茧缚命" },
-                [115450] = { index = 37, name = "清创生血" },
-                [443028] = { index = 38, name = "天神御身" },
-                [322109] = { index = 39, name = "轮回之触" },
-                [119381] = { index = 40, name = "扫堂腿" },
-                [1270621] = { index = 41, name = "宁神茶" },
-                [101643] = { index = 42, name = "魂体双分" },
-                [119996] = { index = 43, name = "魂体双分：转移" },
-                [107428] = { index = 44, name = "旭日东升踢" },
-                [100784] = { index = 45, name = "幻灭踢" },
-                [116844] = { index = 46, name = "平心之环" },
-                [115078] = { index = 47, name = "分筋错骨" },
-            },
+        }
+        fu.spellCooldown = {
+            [116680] = { index = 31, name = "雷光聚神茶", charge = 32 },
+            [115151] = { index = 33, name = "复苏之雾", charge = 34 },
+            [115310] = { index = 35, name = "还魂术" },
+            [116849] = { index = 36, name = "作茧缚命" },
+            [115450] = { index = 37, name = "清创生血" },
+            [443028] = { index = 38, name = "天神御身" },
+            [322109] = { index = 39, name = "轮回之触" },
+            [119381] = { index = 40, name = "扫堂腿" },
+            [1270621] = { index = 41, name = "宁神茶" },
+            [101643] = { index = 42, name = "魂体双分" },
+            [119996] = { index = 43, name = "魂体双分：转移" },
+            [107428] = { index = 44, name = "旭日东升踢" },
+            [100784] = { index = 45, name = "幻灭踢" },
+            [116844] = { index = 46, name = "平心之环" },
+            [115078] = { index = 47, name = "分筋错骨" },
         }
         fu.group_blocks = {
             unit_start = 70,
@@ -128,29 +129,30 @@ function fu.updateSpecInfo()
             role = 2,
             dispel = 3,
             aura = {
-                [4] = { 119611 }, -- 复苏之雾
-                [5] = { 124682 }, -- 氤氲之雾
+                [4] = { 119611 }, -- 复苏之雾, 119611
+                [5] = { 124682 }, -- 氤氲之雾, 124682
             },
         }
     elseif specIndex == 3 then
         fu.HarmfulSpellId = 392983
-        fu.blocks = {
+        fu.blocks         = {
             ["目标生命值"] = 21,
             ["敌人人数"] = 22,
             auras = {
 
             },
-            spell_cd = {
-                [322109] = { index = 31, name = "轮回之触" },
-                [119381] = { index = 32, name = "扫堂腿" },
-                [322101] = { index = 33, name = "移花接木" },
-                [101643] = { index = 34, name = "魂体双分" },
-                [119996] = { index = 35, name = "魂体双分：转移" },
-                [116705] = { index = 36, name = "切喉手" },
-                [198898] = { index = 37, name = "赤精之歌" },
-                [116844] = { index = 38, name = "平心之环" },
-                [115078] = { index = 39, name = "分筋错骨" },
-            },
+
+        }
+        fu.spellCooldown  = {
+            [322109] = { index = 31, name = "轮回之触" },
+            [119381] = { index = 32, name = "扫堂腿" },
+            [322101] = { index = 33, name = "移花接木" },
+            [101643] = { index = 34, name = "魂体双分" },
+            [119996] = { index = 35, name = "魂体双分：转移" },
+            [116705] = { index = 36, name = "切喉手" },
+            [198898] = { index = 37, name = "赤精之歌" },
+            [116844] = { index = 38, name = "平心之环" },
+            [115078] = { index = 39, name = "分筋错骨" },
         }
     end
 end

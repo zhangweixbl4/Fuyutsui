@@ -3,6 +3,7 @@ from ctypes import wintypes # 定义了 Windows 专用的数据类型（如 POIN
 import mss              # 一个极速的屏幕截图库，比 PIL 快很多
 import os               # 用于配置路径
 import sys              # 用于添加父目录到导入路径
+import time             # 用于统计扫描耗时
 import yaml             # 加载 config.yml
 
 # 添加当前目录到路径，用于导入 utils
@@ -214,7 +215,11 @@ def get_info(window_title="魔兽世界"):
 
 
 if __name__ == "__main__":
+    start_time = time.perf_counter()
     info = get_info()
+    elapsed_ms = (time.perf_counter() - start_time) * 1000
+
+    print(f"扫描耗时: {elapsed_ms:.2f} ms")
     if info:
         import json
         # 简单打印（json 对中文友好）

@@ -11,27 +11,28 @@ function fu.updateSpecInfo()
     if specIndex == 1 then
         fu.HarmfulSpellId = 193455 -- 眼鏡蛇射擊
         fu.blocks = {
-            spell_cd = {
-                [34026]  = { index = 31, name = "杀戮命令", charge = 32 },
-                [217200] = { index = 33, name = "倒刺射击", charge = 34 },
-                [109304] = { index = 35, name = "意气风发" },
-                [186265] = { index = 36, name = "灵龟守护" },
-                [147362] = { index = 37, name = "反制射击" },
-                [19574]  = { index = 26, name = "狂野怒火" },
-            },
+
+        }
+        fu.spellCooldown = {
+            [34026]  = { index = 31, name = "杀戮命令", charge = 32 },
+            [217200] = { index = 33, name = "倒刺射击", charge = 34 },
+            [109304] = { index = 35, name = "意气风发" },
+            [186265] = { index = 36, name = "灵龟守护" },
+            [147362] = { index = 37, name = "反制射击" },
+            [19574]  = { index = 26, name = "狂野怒火" },
         }
     elseif specIndex == 2 then
         fu.HarmfulSpellId = 19434 -- 瞄準射擊
         fu.blocks = {
 
-            spell_cd = {
-                [109304] = { index = 21, name = "意气风发" },
-                [186265] = { index = 22, name = "灵龟守护" },
-                [147362] = { index = 23, name = "反制射击" },
-                [19434]  = { index = 24, name = "瞄准射击" ,charge = 30},
-                [257044] = { index = 25, name = "急速射击" },
-                [288613] = { index = 26, name = "百发百中" },
-            },
+        }
+        fu.spellCooldown = {
+            [109304] = { index = 21, name = "意气风发" },
+            [186265] = { index = 22, name = "灵龟守护" },
+            [147362] = { index = 23, name = "反制射击" },
+            [19434]  = { index = 24, name = "瞄准射击", charge = 30 },
+            [257044] = { index = 25, name = "急速射击" },
+            [288613] = { index = 26, name = "百发百中" },
         }
     end
 end

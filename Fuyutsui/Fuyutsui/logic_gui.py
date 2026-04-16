@@ -36,7 +36,7 @@ run_demonhunter_logic = _load_logic_module("demonhunter_logic")
 run_evoker_logic = _load_logic_module("evoker_logic")
 
 TOGGLE_INTERVAL = 0.05
-LOGIC_INTERVAL = 0.2
+LOGIC_INTERVAL = 0.1
 GUI_UPDATE_MS = 100
 
 LOGIC_FUNCS_BY_CLASS = {

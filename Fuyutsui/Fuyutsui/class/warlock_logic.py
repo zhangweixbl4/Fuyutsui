@@ -1,18 +1,53 @@
 # -*- coding: utf-8 -*-
 """术士职业的基础逻辑（未实现）。"""
 from utils import *
+action_map = {
+    1: ("古尔丹之手", "古尔丹之手"),
+    2: ("召唤恐惧猎犬", "召唤恐惧猎犬"),
+    3: ("召唤恶魔卫士", "召唤恶魔卫士"),
+    4: ("恶魔之箭", "恶魔之箭"),
+    5: ("暗影箭", "暗影箭"),
+    10: ("陨灭", "古尔丹之手"),
+    11: ("狱火箭", "暗影箭"),
+}
+
+failed_spell_map = {
+    1: "死亡缠绕",
+    2: "暗影之怒",
+    3: "暗影之怒",
+    4: "内爆",
+    5: "召唤恶魔暴君",
+    6: "魔典：邪能破坏者",
+}
+
+# 找到失败法术，必须是法术有冷却时间，并且冷却时间为 0
+def _get_failed_spell(state_dict):
+    法术失败 = state_dict.get("法术失败", 0)
+    spells = state_dict.get("spells") or {}
+    spell_name = failed_spell_map.get(法术失败)
+    if spell_name and spells.get(spell_name, -1) == 0:
+        return spell_name
+    return None
 
 def run_warlock_logic(state_dict, spec_name):
     spells = state_dict.get("spells") or {}
-    health = state_dict.get("生命值")
-    power = state_dict.get("能量值")
-    assistant = state_dict.get("一键辅助")
-    target_valid = state_dict.get("目标有效")
-    combat = state_dict.get("战斗")
-    casting = state_dict.get("施法")
-    moving = state_dict.get("移动")
-    group_type = state_dict.get("队伍类型", 0)
-    failedSpell = state_dict.get("法术失败", 0)
+    战斗 = state_dict.get("战斗")
+    移动 = state_dict.get("移动")
+    施法 = state_dict.get("施法")
+    引导 = state_dict.get("引导")
+    生命值 = state_dict.get("生命值")
+    能量值 = state_dict.get("能量值")
+    一键辅助 = state_dict.get("一键辅助")
+    法术失败 = state_dict.get("法术失败", 0)
+    目标有效 = state_dict.get("目标有效")
+    队伍类型 = int(state_dict.get("队伍类型", 0) or 0)
+    队伍人数 = int(state_dict.get("队伍人数", 0) or 0)
+    首领战 = int(state_dict.get("首领战", 0) or 0)
+    难度 = int(state_dict.get("难度", 0) or 0)
+    英雄天赋 = int(state_dict.get("英雄天赋", 0) or 0)
+
+    失败法术 = _get_failed_spell(state_dict)
+    tup = action_map.get(一键辅助)
 
     action_hotkey = None
     current_step = "无匹配技能"
@@ -22,50 +57,41 @@ def run_warlock_logic(state_dict, spec_name):
         return action_hotkey, current_step, unit_info
 
     elif spec_name == "恶魔":
-        if spells.get("死亡缠绕", 0) < 1 and failedSpell == 32:
-            current_step = "施放 死亡缠绕"
-            action_hotkey = get_hotkey(0, "死亡缠绕")
-        elif spells.get("暗影之怒", 0) < 1 and failedSpell == 34:
-            current_step = "施放 暗影之怒"
-            action_hotkey = get_hotkey(0, "暗影之怒")
-        elif spells.get("召唤末日守卫", 0) < 1 and failedSpell == 41:
-            current_step = "施放 召唤末日守卫"
-            action_hotkey = get_hotkey(0, "召唤末日守卫")
-        #elif spells.get("内爆", 0) < 1 and failedSpell == 37:
-        #    current_step = "施放 内爆"
-        #    action_hotkey = get_hotkey(0, "内爆")
-        elif combat and target_valid:
-            if spells.get("魔典：邪能破坏者") == 0 and state_dict.get("法术封锁", -1) == 1:
+        小鬼数量 = state_dict.get("小鬼数量", 0)
+        灵魂碎片 = state_dict.get("灵魂碎片", 0)
+        施法技能 = state_dict.get("施法技能", 0)
+        法术封锁 = state_dict.get("法术封锁", 0)
+
+        魔典邪能破坏者 = spells.get("魔典：邪能破坏者", -1)
+        内爆 = spells.get("内爆", -1)
+        古尔丹之手 = spells.get("古尔丹之手", -1)
+        暗影箭 = spells.get("暗影箭", -1)
+        邪能统御 = spells.get("邪能统御", -1)
+
+        if 法术失败 != 0 and 失败法术 is not None:
+            current_step = f"施放 {失败法术}"
+            action_hotkey = get_hotkey(0, 失败法术)
+        elif 战斗 and 目标有效:
+            if 魔典邪能破坏者 == 0 and 法术封锁 == 1:
                 current_step = "施放 魔典：邪能破坏者"
                 action_hotkey = get_hotkey(0, "魔典：邪能破坏者")
-            elif state_dict.get("小鬼数量", 0) >= 6 and spells.get("内爆") == 0:
+            elif 小鬼数量 >= 6 and 内爆 == 0:
                 current_step = "施放 内爆"
                 action_hotkey = get_hotkey(0, "内爆")
-            elif state_dict.get("施法技能", -1) == 18 and state_dict.get("灵魂碎片", -1) == 5:
+            elif 施法技能 == 18 and 灵魂碎片 == 5:
                 current_step = "施放 古尔丹之手"
                 action_hotkey = get_hotkey(0, "古尔丹之手")
-            elif state_dict.get("施法技能", -1) == 18 and state_dict.get("灵魂碎片", -1) < 5:
+            elif 施法技能 == 18 and 灵魂碎片 < 5:
                 current_step = "施放 暗影箭"
                 action_hotkey = get_hotkey(0, "暗影箭")
-            elif assistant == 3 and spells.get("邪能统御") == 0:
+            elif 一键辅助 == 3 and 邪能统御 == 0:
                 current_step = "施放 邪能统御"
                 action_hotkey = get_hotkey(0, "邪能统御")
+            elif tup:
+                current_step = f"施放 {tup[0]}"
+                action_hotkey = get_hotkey(0, tup[1])
             else:
-                action_map = {
-                    1: ("古尔丹之手", "古尔丹之手"),
-                    2: ("召唤恐惧猎犬", "召唤恐惧猎犬"),
-                    3: ("召唤恶魔卫士", "召唤恶魔卫士"),
-                    4: ("恶魔之箭", "恶魔之箭"),
-                    5: ("暗影箭", "暗影箭"),
-                    10: ("陨灭", "古尔丹之手"),
-                    11: ("狱火箭", "暗影箭"),
-                }
-                tup = action_map.get(assistant)
-                if tup:
-                    current_step = f"施放 {tup[0]}"
-                    action_hotkey = get_hotkey(0, tup[1])
-                else:
-                    current_step = "战斗中-无匹配技能"
+                current_step = "战斗中-无匹配技能"
 
     elif spec_name == "毁灭":
         return action_hotkey, current_step, unit_info

@@ -9,6 +9,12 @@ fu.heroSpell = {
     [444005] = 3, -- 天启骑士
 }
 
+fu.spellCooldown = {
+    [51052]  = { index = 41, name = "反魔法领域" },
+    [221562] = { index = 42, name = "窒息" },
+    [207167] = { index = 43, name = "致盲冰雨" },
+}
+
 function fu.updateSpecInfo()
     local specIndex = C_SpecializationInfo.GetSpecialization()
     fu.powerType = nil
@@ -17,19 +23,32 @@ function fu.updateSpecInfo()
     fu.assistant_spells = nil
     if specIndex == 1 then
         fu.blocks = {
-            runes = 21,
+            ["符文"] = 21,
             ["目标生命值"] = 22,
             ["敌人人数"] = 23,
-            spell_cd = {
-                [46585] = { index = 31, name = "亡者复生" },
-                [55233] = { index = 32, name = "吸血鬼之血" },
-                [48792] = { index = 33, name = "冰封之韧" },
-                [49039] = { index = 34, name = "巫妖之躯" },
+        }
+        fu.spellCooldown[46585] = { index = 44, name = "亡者复生" }
+        fu.spellCooldown[55233] = { index = 45, name = "吸血鬼之血" }
+        fu.spellCooldown[48792] = { index = 46, name = "冰封之韧" }
+        fu.spellCooldown[49039] = { index = 47, name = "巫妖之躯" }
+        fu.spellCooldown[108199] = { index = 48, name = "血魔之握" }
+        fu.spellCooldown[1263569] = { index = 49, name = "憎恶附肢" }
+    elseif specIndex == 2 then
+        fu.blocks = {
+            ["符文"] = 21,
+            ["目标生命值"] = 22,
+            ["敌人人数"] = 23,
+            auras = {
+                ["黑暗援助"] = {
+                    index = 24,
+                    auraRef = fu.auras["黑暗援助"],
+                    showKey = "remaining",
+                },
             }
         }
     elseif specIndex == 3 then
         fu.blocks = {
-            runes = 21,
+            ["符文"] = 21,
             ["目标生命值"] = 22,
             ["敌人人数"] = 23,
             auras = {
@@ -68,15 +87,13 @@ function fu.updateSpecInfo()
                     auraRef = fu.auras["脓疮毒镰"],
                     showKey = "remaining",
                 },
-            },
-            spell_cd = {
-                [46584] = { index = 41, name = "亡者复生" },
-                [42650] = { index = 42, name = "亡者大军" },
-                [1247378] = { index = 43, name = "腐化", charge = 46 },
-                [1233448] = { index = 44, name = "黑暗突变" },
-                [343294] = { index = 45, name = "灵魂收割" },
-            },
+            }
         }
+        fu.spellCooldown[46584] = { index = 44, name = "亡者复生" }
+        fu.spellCooldown[42650] = { index = 45, name = "亡者大军" }
+        fu.spellCooldown[1247378] = { index = 46, name = "腐化", charge = 47 }
+        fu.spellCooldown[1233448] = { index = 48, name = "黑暗突变" }
+        fu.spellCooldown[343294] = { index = 49, name = "灵魂收割" }
     end
 end
 
@@ -103,6 +120,23 @@ function fu.CreateClassMacro()
         [18] = "吸血鬼之血",
         [19] = "冰封之韧",
         [20] = "巫妖之躯",
+        [21] = "[@cursor]反魔法领域",
+        [22] = "窒息",
+        [23] = "致盲冰雨",
+        [24] = "血魔之握",
+        [25] = "憎恶附肢",
+        [26] = "死神印记",
+        [27] = "冰川突进",
+        [28] = "冰霜巨龙之怒",
+        [29] = "冷酷严冬",
+        [30] = "冰霜之柱",
+        [31] = "冰霜打击",
+        [32] = "凛风冲击",
+        [33] = "冰霜之镰",
+        [34] = "冰龙吐息",
+        [35] = "湮灭",
+        [36] = "符文武器增效",
+        [37] = "符文打击",
     }
     fu.CreateMacro(dynamicSpells, staticSpells, _)
 end

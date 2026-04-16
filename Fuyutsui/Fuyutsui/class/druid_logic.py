@@ -2,11 +2,68 @@
 """德鲁伊职业的逻辑决策（奶德 / 守护）。"""
 
 from utils import *
+spell_map ={
+    1: "台风",
+    2: "夺魂咆哮",
+    3: "乌索尔旋风",
+    4: "自然迅捷",
+    5: "月火术",
+    6: "野性印记",
+    7: "摧折",
+    8: "明月普照",
+    9: "横扫",
+    10: "熊形态",
+    11: "痛击",
+    12: "裂伤",
+    13: "赤红之月",
+    14: "毁灭",
+    15: "凶猛撕咬",
+    16: "割裂",
+    17: "撕碎",
+    18: "斜掠",
+    19: "愤怒",
+    20: "愈合",
+    21: "野性生长",
+    22: "宁静",
+}
 
 # 将需要驱散的首领 ID
 need_dispel_bosses = {4, 5}
 # 不需要驱散的首领 ID
 no_dispel_bosses = {64}
+# 法术失败列表
+failed_spell_map = {
+    1: "台风",
+    2: "夺魂咆哮",
+    3: "乌索尔旋风",
+    4: "自然迅捷",
+}
+
+action_map = {
+    7: ("摧折", "摧折"),
+    8: ("明月普照", "明月普照"),
+    5: ("月火术", "月火术"),
+    9: ("横扫", "横扫"),
+    10: ("熊形态", "熊形态"),
+    11: ("痛击", "痛击"),
+    12: ("裂伤", "裂伤"),
+    6: ("野性印记", "野性印记"),
+    13: ("赤红之月", "月火术"),
+    14: ("毁灭", "摧折"),
+    15: ("凶猛撕咬", "凶猛撕咬"),
+    16: ("割裂", "割裂"),
+    17: ("撕碎", "撕碎"),
+    18: ("斜掠", "斜掠"),
+}
+
+# 找到失败法术，必须是法术有冷却时间，并且冷却时间为 0
+def _get_failed_spell(state_dict):
+    法术失败 = state_dict.get("法术失败", 0)
+    spells = state_dict.get("spells") or {}
+    spell_name = failed_spell_map.get(法术失败)
+    if spell_name and spells.get(spell_name, -1) == 0:
+        return spell_name
+    return None
 
 def run_druid_logic(state_dict, spec_name):
     spells = state_dict.get("spells") or {}
@@ -24,6 +81,7 @@ def run_druid_logic(state_dict, spec_name):
     首领战 = int(state_dict.get("首领战", 0) or 0)
     难度 = int(state_dict.get("难度", 0) or 0)
     英雄天赋 = int(state_dict.get("英雄天赋", 0) or 0)
+    失败法术 = _get_failed_spell(state_dict)
 
     action_hotkey = None
     current_step = "无匹配技能"
@@ -37,9 +95,13 @@ def run_druid_logic(state_dict, spec_name):
         姿态 = state_dict.get("姿态", 0)
         目标距离 = state_dict.get("目标距离", 0)
         队伍人数 = state_dict.get("队伍人数")
+        tup = action_map.get(一键辅助)
 
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
+        elif 法术失败 != 0 and 失败法术 is not None:
+            current_step = f"施放 {失败法术}"
+            action_hotkey = get_hotkey(0, 失败法术)
         elif 战斗 and 目标有效:
             if 姿态 != 5:
                 current_step = "施放 熊形态"
@@ -56,27 +118,13 @@ def run_druid_logic(state_dict, spec_name):
             elif 梦境层数 > 0 and 狂暴回复 > 15:
                 current_step = "施放 愈合"
                 action_hotkey = get_hotkey(1, "愈合")
+            elif tup:
+                current_step = f"施放 {tup[0]}"
+                action_hotkey = get_hotkey(0, tup[1])
             else:
-                action_map = {
-                    3: ("摧折", "摧折"),
-                    4: ("明月普照", "明月普照"),
-                    1: ("月火术", "月火术"),
-                    5: ("横扫", "横扫"),
-                    6: ("熊形态", "熊形态"),
-                    7: ("痛击", "痛击"),
-                    8: ("裂伤", "裂伤"),
-                    2: ("野性印记", "野性印记"),
-                    9: ("赤红之月", "月火术"),
-                    10: ("毁灭", "摧折"),
-                }
-                tup = action_map.get(一键辅助)
-                if tup:
-                    current_step = f"施放 {tup[0]}"
-                    action_hotkey = get_hotkey(0, tup[1])
-                else:
-                    current_step = "战斗中-无匹配技能"
+                current_step = "战斗中-无匹配技能"
         else:
-            current_step = "非战斗状态,不执行任何操作"
+            current_step = "不执行任何操作"
 
     elif spec_name == "平衡":
         current_step = "平衡专精,不执行任何操作"
@@ -106,11 +154,16 @@ def run_druid_logic(state_dict, spec_name):
         野性之心 = spells.get("野性之心", -1)
         台风 = spells.get("台风", -1)
         夺魂咆哮 = spells.get("夺魂咆哮", -1)
-        乌索克旋风 = spells.get("乌索克旋风", -1)
+        乌索尔旋风 = spells.get("乌索尔旋风", -1)
 
         dispel_unit_magic, _ = get_unit_with_dispel_type(state_dict, 1)
         dispel_unit_curse, _ = get_unit_with_dispel_type(state_dict, 2)
         dispel_unit_poison, _ = get_unit_with_dispel_type(state_dict, 4)
+
+        治疗限值 = int(60 + (能量值 * 0.3)) # 90-60
+        群疗限值数量 = get_count_units_below_health(state_dict, 治疗限值)
+        群疗限值2数量 = get_count_units_below_health(state_dict, 治疗限值 - 10)
+
         最低, 血量最低 = get_lowest_health_unit(state_dict, 100)
         可迅捷最低, 可迅捷最低血量 = get_lowest_health_unit_with_aura(state_dict, "迅捷治愈", health_threshold=101)
         无愈合最低, 无愈合最低血量 = get_lowest_health_unit_without_aura(state_dict, "愈合", health_threshold=101)
@@ -120,6 +173,7 @@ def run_druid_logic(state_dict, spec_name):
         有绽放单位, 绽放时间 = get_unit_with_aura(state_dict, "生命绽放")
         count90 = count_units_below_health(state_dict, 90)
         count70 = count_units_below_health(state_dict, 70)
+        tup = action_map.get(一键辅助)
 
         驱散单位 = None
         if dispel_unit_magic is not None:
@@ -155,6 +209,9 @@ def run_druid_logic(state_dict, spec_name):
 
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
+        elif 法术失败 != 0 and 失败法术 is not None:
+            current_step = f"施放 {失败法术}"
+            action_hotkey = get_hotkey(0, 失败法术)
         elif 自然之愈 == 0 and 驱散单位 is not None:
             current_step = f"施放 自然之愈 on {驱散单位}"
             action_hotkey = get_hotkey(int(驱散单位), "自然之愈")            
@@ -164,74 +221,67 @@ def run_druid_logic(state_dict, spec_name):
         elif 有绽放单位 is None and 无绽放坦克 is not None:
             current_step = f"施放 生命绽放 on {无绽放坦克}"
             action_hotkey = get_hotkey(int(无绽放坦克), "生命绽放")
-        elif 施法技能 != 1 and 0 < 节能施法 < 5 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 90:
+        elif 施法技能 != 20 and 0 < 节能施法 < 5 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 治疗限值:
             current_step = f"施放 愈合 on {无愈合最低}"
             action_hotkey = get_hotkey(int(无愈合最低), "愈合")
-        elif 激活 == 0 and 战斗 and 姿态 == 0 and 能量值 < 80:
+        elif 激活 == 0 and 战斗 and 姿态 == 0 and 能量值 < 80 and count70 >= 2:
             current_step = "施放 激活"
             action_hotkey = get_hotkey(0, "激活")
         elif 丛林之魂 > 0 and 无回春最低 is not None and 无回春最低血量 is not None:
             current_step = f"施放 回春术 on {无回春最低}"
             action_hotkey = get_hotkey(int(无回春最低), "回春术")
-        elif 迅捷治愈 == 0 and 可迅捷最低 is not None and 可迅捷最低血量 is not None and 可迅捷最低血量 < 90:
+        elif 迅捷治愈 == 0 and 可迅捷最低 is not None and 可迅捷最低血量 is not None and 可迅捷最低血量 < 治疗限值:
             current_step = f"施放 迅捷治愈 on {可迅捷最低}"
             action_hotkey = get_hotkey(int(可迅捷最低), "迅捷治愈")
-        elif 施法技能 != 2 and 野性成长 == 0 and count90 >= 2:
+        elif 施法技能 != 21 and 野性成长 == 0 and count90 >= 2:
             current_step = "施放 野性成长"
             action_hotkey = get_hotkey(0, "野性成长")
         elif 万灵之召 == 0 and count70 >= 2:
             current_step = "施放 万灵之召"
             action_hotkey = get_hotkey(0, "万灵之召")
-        elif 施法技能 != 1 and 4 < 节能施法 < 15 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 80:
+        elif 施法技能 != 20 and 4 < 节能施法 < 15 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 治疗限值 - 10:
             current_step = f"施放 愈合 on {无愈合最低}"
             action_hotkey = get_hotkey(int(无愈合最低), "愈合")
-        elif 自然迅捷 == 255 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 70:
+        elif 自然迅捷 == 255 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 治疗限值 - 20:
             current_step = f"施放 自然迅捷 on {无愈合最低}"
             action_hotkey = get_hotkey(int(无愈合最低), "愈合")
-        elif 自然迅捷 == 0 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 70:
+        elif 自然迅捷 == 0 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 治疗限值 - 20:
             current_step = "施放 自然迅捷"
             action_hotkey = get_hotkey(0, "自然迅捷")
-        elif 单回春最低 is not None and 单回春血量最低 is not None and 单回春血量最低 < 80 and 队伍类型 == 46:
+        elif 单回春最低 is not None and 单回春血量最低 is not None and 单回春血量最低 < 治疗限值 - 10 and 队伍类型 == 46:
             current_step = f"施放 回春术 on {单回春最低}"
             action_hotkey = get_hotkey(int(单回春最低), "回春术")
-        elif 无回春最低 is not None and 无回春最低血量 is not None and 无回春最低血量 < 95:
+        elif 无回春最低 is not None and 无回春最低血量 is not None and 无回春最低血量 < 治疗限值:
             current_step = f"施放 回春术 on {无回春最低}"
             action_hotkey = get_hotkey(int(无回春最低), "回春术")
-        elif 施法技能 != 1 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 70:
+        elif 施法技能 != 20 and 无愈合最低 is not None and 无愈合最低血量 is not None and 无愈合最低血量 < 70:
             current_step = f"施放 愈合 on {无愈合最低}"
             action_hotkey = get_hotkey(int(无愈合最低), "愈合")
         elif 战斗 and 目标有效:
-            if 一键辅助 == 14:
+            if 一键辅助 == 18:
                 current_step = "施放 斜掠"
                 action_hotkey = get_hotkey(0, "斜掠")
             elif 目标距离 <= 4:
                 if 姿态 != 1:
                     current_step = "施放 猎豹形态"
                     action_hotkey = get_hotkey(0, "猎豹形态")
-                elif 姿态 == 1 and 连击点 <= 1 and 野性之心 == 0:
-                    current_step = "施放 野性之心"
-                    action_hotkey = get_hotkey(0, "野性之心")
                 elif 姿态 == 1:
-                    action_map = {
-                        11: ("凶猛撕咬", "凶猛撕咬"),
-                        12: ("割裂", "割裂"),
-                        13: ("撕碎", "撕碎"),
-                        14: ("斜掠", "斜掠"),
-                    }
-                    tup = action_map.get(一键辅助)
-                    if tup:
-                        current_step = f"施放 {tup[0]}"
-                        action_hotkey = get_hotkey(0, tup[1])
+                    if 连击点 <= 1 and 野性之心 == 0:
+                        current_step = "施放 野性之心"
+                        action_hotkey = get_hotkey(0, "野性之心")
+                    elif tup:
+                            current_step = f"施放 {tup[0]}"
+                            action_hotkey = get_hotkey(0, tup[1])
                     else:
                         current_step = "战斗中-无匹配技能"
             elif 目标距离 > 8:
-                if 一键辅助 == 1:
+                if 一键辅助 == 5:
                     current_step = "施放 月火术"
                     action_hotkey = get_hotkey(0, "月火术")
-                elif 一键辅助 == 15:
+                elif 一键辅助 == 19:
                     current_step = "施放 愤怒"
                     action_hotkey = get_hotkey(0, "愤怒")
-        elif 一键辅助 == 2:
+        elif 一键辅助 == 6:
             current_step = "施放 野性印记"
             action_hotkey = get_hotkey(0, "野性印记")
         else:

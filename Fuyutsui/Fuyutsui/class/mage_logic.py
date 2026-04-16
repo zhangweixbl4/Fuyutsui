@@ -3,6 +3,35 @@
 
 from utils import *
 
+action_map = {
+    6: ("奥术智慧", "奥术智慧"),
+    7: ("寒冰箭", "寒冰箭"),
+    8: ("冰川尖刺", "寒冰箭"),
+    9: ("冰枪术", "冰枪术"),
+    10: ("冰霜射线", "冰霜射线"),
+    11: ("冰风暴", "冰风暴"),
+    12: ("寒冰宝珠", "寒冰宝珠"),
+    4: ("暴风雪", "暴风雪"),
+    5: ("暴风雪", "暴风雪"),
+    13: ("霜火之箭", "寒冰箭"),
+    14: ("彗星风暴", "冰霜射线"),
+}
+
+failed_spell_map = {
+    1: "强化隐形术",
+    2: "冰霜新星",
+    3: "龙息术",
+}
+
+# 找到失败法术，必须是法术有冷却时间，并且冷却时间为 0
+def _get_failed_spell(state_dict):
+    法术失败 = state_dict.get("法术失败", 0)
+    spells = state_dict.get("spells") or {}
+    spell_name = failed_spell_map.get(法术失败)
+    if spell_name and spells.get(spell_name, -1) == 0:
+        return spell_name
+    return None
+
 def run_mage_logic(state_dict, spec_name):
     spells = state_dict.get("spells") or {}
     生命值 = state_dict.get("生命值")
@@ -19,11 +48,16 @@ def run_mage_logic(state_dict, spec_name):
     难度 = state_dict.get("难度", 0)
     施法技能 = state_dict.get("施法技能", 0)
 
+    tup = action_map.get(一键辅助)
+
     action_hotkey = None
     current_step = "无匹配技能"
     unit_info = {}
-
-    if spec_name == "奥术":
+    失败法术 = _get_failed_spell(state_dict)
+    if 法术失败 != 0 and 失败法术 is not None:
+        current_step = f"施放 {失败法术}"
+        action_hotkey = get_hotkey(0, 失败法术)
+    elif spec_name == "奥术":
         current_step = "奥术专精,不执行任何操作"
         return None, current_step, unit_info
     elif spec_name == "火焰":
@@ -50,12 +84,11 @@ def run_mage_logic(state_dict, spec_name):
         暴风雪Tcd = spells.get("暴风雪T", -1)
         暴风雪Ccd = spells.get("暴风雪C", -1)
         # 施放冰川尖刺时, 冰川尖刺层数清零,防止重复施法
-        if 施法技能 == 2: 
+        if 施法技能 == 8: 
            冰川尖刺 = 1
-
+        
         if 引导 > 0:
             current_step = "在引导,不执行任何操作"
-        
         elif 战斗 and 目标有效:
             if 敌人人数 > 3 and 冰冻之雨 > 0 and (暴风雪Tcd == 0 or 暴风雪Ccd == 0):
                 current_step = "施放 暴风雪"
@@ -69,24 +102,10 @@ def run_mage_logic(state_dict, spec_name):
             elif 冰川尖刺 >= 2:
                 current_step = "施放 寒冰箭"
                 action_hotkey = get_hotkey(0, "寒冰箭")
+            elif tup:
+                current_step = f"施放 {tup[0]}"
+                action_hotkey = get_hotkey(0, tup[1])
             else:
-                action_map = {
-                    1: ("奥术智慧", "奥术智慧"),
-                    2: ("寒冰箭", "寒冰箭"),
-                    3: ("冰川尖刺", "寒冰箭"),
-                    4: ("冰枪术", "冰枪术"),
-                    5: ("冰霜射线", "冰霜射线"),
-                    6: ("冰风暴", "冰风暴"),
-                    7: ("寒冰宝珠", "寒冰宝珠"),
-                    8: ("暴风雪", "暴风雪"),
-                    9: ("霜火之箭", "寒冰箭"),
-                    10: ("彗星风暴", "冰霜射线"),
-                }
-                tup = action_map.get(一键辅助)
-                if tup:
-                    current_step = f"施放 {tup[0]}"
-                    action_hotkey = get_hotkey(0, tup[1])
-                else:
-                    current_step = "战斗中-无匹配技能"
+                current_step = "战斗中-无匹配技能"
 
     return action_hotkey, current_step, unit_info
