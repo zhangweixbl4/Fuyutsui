@@ -124,7 +124,7 @@ fu.spellsList = {
     [184575]  = { index = 13, },               -- 公正之剑
     [20271]   = { index = 14, },               -- 审判
     [383328]  = { index = 15, },               -- 最终审判
-    [255937]  = { index = 16, },               -- 灰烬觉醒
+    [255937]  = { index = 16, failed = true },  -- 灰烬觉醒
     [53385]   = { index = 17, },               -- 神圣风暴
     [427453]  = { index = 18, },               -- 圣光之锤(灰烬觉醒, 圣洁鸣钟)
     [24275]   = { index = 19, },               -- 愤怒之锤(审判)
@@ -547,6 +547,34 @@ fu.auras = {
         countMax = 2,
         expirationTime = nil,
     },
+    ["奉献"] = {
+        name = "奉献",
+        spellId = 188370,
+        remaining = 0,
+        duration = 12,
+        expirationTime = nil,
+    },
+    ["复仇之怒"] = {
+        name = "复仇之怒",
+        spellId = 31884,
+        remaining = 0,
+        duration = 0,
+        expirationTime = nil,
+    },
+    ["处决宣判"] = {
+        name = "处决宣判",
+        spellId = 343527,
+        remaining = 0,
+        duration = 10,
+        expirationTime = nil,
+    },
+    ["圣光之锤"] = {
+        name = "圣光之锤",
+        spellId = 1246643,
+        remaining = 0,
+        duration = 20,
+        expirationTime = nil,
+    },
     -- 牧师
     ["虚空之盾"] = {
         name = "虚空之盾",
@@ -773,6 +801,11 @@ fu.updateAuras = {
         [432496] = { { name = "神圣壁垒" } },
         [432502] = { { name = "圣洁武器" } },
         [327510] = { { name = "闪耀之光", step = 1 } },
+        [188370] = { { name = "奉献" } },
+        [31884] = { { name = "复仇之怒" } },
+        [343527] = { { name = "处决宣判" } },
+        [1246643] = { { name = "圣光之锤" } },
+        [427441] = { { name = "圣光之锤" } },
         -- 牧师
         [1253591] = { { name = "虚空之盾" } },
         [114255] = { { name = "圣光涌动", step = 1 } },
@@ -870,6 +903,8 @@ fu.updateAuras = {
         [275773] = { { name = "圣光灌注", auraID = 54149, step = -1 } },
         -- 荣耀圣令
         [85673] = { { name = "闪耀之光", auraID = 327510, step = -1 } },
+        -- 圣光之锤
+        [427453] = { { name = "圣光之锤", auraID = 1246643 } },
         -- 真言术：耀
         [194509] = { { name = "福音", auraID = 472433, step = -1 } },
         -- 快速治疗
